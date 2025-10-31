@@ -1,24 +1,109 @@
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 import FileUpload from './components/FileUpload'
 import AuthModal from './components/AuthModal'
+import ReportsModal from './components/ReportsModal'
+import WelcomeSetup from './components/WelcomeSetup'
+import CreateOrganizationModal from './components/CreateOrganizationModal'
+import OrganizationSelector from './components/OrganizationSelector'
+import OrganizationsSettingsPanel from './components/OrganizationsSettingsPanel'
+import InviteMembersModal from './components/InviteMembersModal'
+import SettingsPanel from './components/SettingsPanel'
+import FAQs from './components/FAQs'
 import { AuthProvider, useAuth } from './contexts/AuthContext'
+import { OrganizationProvider, useOrganization } from './contexts/OrganizationContext'
 import './App.css'
 
 const AppContent = () => {
+  const [currentView, setCurrentView] = useState('home') // 'home', 'faqs'
   const [showAuthModal, setShowAuthModal] = useState(false)
+  const [showReportsModal, setShowReportsModal] = useState(false)
+  const [showCreateOrgModal, setShowCreateOrgModal] = useState(false)
+  const [showOrgSettings, setShowOrgSettings] = useState(false)
+  const [showInviteModal, setShowInviteModal] = useState(false)
+  const [notification, setNotification] = useState(null)
   const { user, logout, isAuthenticated } = useAuth()
+  const { needsSetup, currentOrganization, loading: orgLoading, refreshOrganizations, userOrganizations } = useOrganization()
+
+  // Manejar hash routing
+  useEffect(() => {
+    const handleHashChange = () => {
+      const hash = window.location.hash
+      if (hash === '#faqs') {
+        setCurrentView('faqs')
+      } else {
+        setCurrentView('home')
+      }
+    }
+
+    // Verificar hash inicial
+    handleHashChange()
+
+    // Escuchar cambios en el hash
+    window.addEventListener('hashchange', handleHashChange)
+    return () => window.removeEventListener('hashchange', handleHashChange)
+  }, [])
+
+  useEffect(() => {
+    if (notification) {
+      const timer = setTimeout(() => setNotification(null), 5000)
+      return () => clearTimeout(timer)
+    }
+  }, [notification])
 
   const handleAuthClick = () => {
     setShowAuthModal(true)
+  }
+
+  const handleAuthSuccess = async () => {
+    // El modal de auth maneja internamente el setup de organización
+    // Solo necesitamos refrescar las organizaciones
+    await refreshOrganizations()
   }
 
   const handleLogout = () => {
     logout()
   }
 
+  const handleOrgCreated = (organization) => {
+    setNotification({
+      type: 'success',
+      message: `✅ Tu organización "${organization.name}" fue creada con éxito.`
+    })
+  }
+
+
+  // Si necesita setup y está autenticado, mostrar WelcomeSetup como pantalla completa
+  // Solo si no está mostrando el modal de setup (para evitar conflicto)
+  if (isAuthenticated && needsSetup && !orgLoading && !showAuthModal && !showCreateOrgModal && currentView === 'home') {
+    return (
+      <WelcomeSetup
+        onCreateOrganization={() => setShowCreateOrgModal(true)}
+        onJoinOrganization={() => {}}
+      />
+    )
+  }
+
+  // Mostrar página de FAQs
+  if (currentView === 'faqs') {
+    return (
+      <>
+        <FAQs onBack={() => {
+          setCurrentView('home')
+          window.location.hash = ''
+        }} />
+      </>
+    )
+  }
+
   return (
     <div className="site">
       <div className="beta-banner">🧪 Versión beta en pruebas. Los resultados y tiempos pueden variar.</div>
+
+      {notification && (
+        <div className={`notification-banner ${notification.type}`}>
+          {notification.message}
+        </div>
+      )}
 
       <header className="site-header">
         <div className="site-header__left">
@@ -28,14 +113,87 @@ const AppContent = () => {
           </div>
         </div>
         <nav className="site-nav">
-          <a className="nav-link" href="#faqs">FAQs</a>
-          <a className="nav-link" href="#about">Quiénes somos</a>
-          <a className="nav-link" href="#contact">Contacto</a>
+          <a 
+            className="nav-link" 
+            href="#faqs"
+            onClick={(e) => {
+              e.preventDefault()
+              setCurrentView('faqs')
+              window.location.hash = 'faqs'
+            }}
+          >
+            FAQs
+          </a>
+          <a 
+            className="nav-link" 
+            href="#about"
+            onClick={(e) => {
+              e.preventDefault()
+              if (currentView === 'faqs') {
+                setCurrentView('home')
+                window.location.hash = ''
+                setTimeout(() => {
+                  const element = document.getElementById('about')
+                  if (element) {
+                    element.scrollIntoView({ behavior: 'smooth', block: 'start' })
+                  }
+                }, 100)
+              } else {
+                const element = document.getElementById('about')
+                if (element) {
+                  element.scrollIntoView({ behavior: 'smooth', block: 'start' })
+                }
+              }
+            }}
+          >
+            Quiénes somos
+          </a>
+          <a 
+            className="nav-link" 
+            href="#contact"
+            onClick={(e) => {
+              e.preventDefault()
+              if (currentView === 'faqs') {
+                setCurrentView('home')
+                window.location.hash = ''
+                setTimeout(() => {
+                  const element = document.getElementById('contact')
+                  if (element) {
+                    element.scrollIntoView({ behavior: 'smooth', block: 'start' })
+                  }
+                }, 100)
+              } else {
+                const element = document.getElementById('contact')
+                if (element) {
+                  element.scrollIntoView({ behavior: 'smooth', block: 'start' })
+                }
+              }
+            }}
+          >
+            Contacto
+          </a>
         </nav>
         <div className="site-header__actions">
+          {isAuthenticated && currentOrganization && (
+            <button
+              className="btn btn-secondary"
+              onClick={() => setShowInviteModal(true)}
+              style={{ marginRight: '12px' }}
+            >
+              👥 Invitar colaboradores
+            </button>
+          )}
           <a className="btn btn-secondary" href="#docs">Ver documentación</a>
           {isAuthenticated ? (
             <div className="user-menu">
+              {currentOrganization && <OrganizationSelector />}
+              <button
+                className="btn btn-secondary"
+                onClick={() => setShowOrgSettings(true)}
+                title="Configuración"
+              >
+                ⚙️
+              </button>
               <span className="user-greeting">Hola, {user?.name}</span>
               <button className="btn btn-primary-light" onClick={handleLogout}>
                 Cerrar sesión
@@ -74,6 +232,13 @@ const AppContent = () => {
           <div className="card upload">
             <div className="upload__title">Arrastrá tu archivo .pbit aquí</div>
             <FileUpload compact={true} onAuthRequired={handleAuthClick} />
+            <button 
+              className="btn btn-primary-light full"
+              onClick={() => setShowReportsModal(true)}
+              style={{ marginTop: '12px' }}
+            >
+              📋 Ver Reportes
+            </button>
             <button className="btn btn-secondary full">Ver Documentación</button>
           </div>
 
@@ -88,7 +253,7 @@ const AppContent = () => {
         </section>
       </main>
 
-      <section className="about-section">
+      <section id="about" className="about-section">
         <div className="about-container">
           <h2 className="about-title">¿Quiénes somos?</h2>
           <div className="about-content">
@@ -99,7 +264,7 @@ const AppContent = () => {
         </div>
       </section>
 
-      <section className="feedback-section">
+      <section id="contact" className="feedback-section">
         <div className="feedback-container">
           <h2 className="feedback-title">⭐ Queremos escuchar tu experiencia</h2>
           <p className="feedback-description">
@@ -145,7 +310,31 @@ const AppContent = () => {
 
       <AuthModal 
         isOpen={showAuthModal} 
-        onClose={() => setShowAuthModal(false)} 
+        onClose={() => setShowAuthModal(false)}
+        onAuthSuccess={handleAuthSuccess}
+      />
+
+      <ReportsModal
+        isOpen={showReportsModal}
+        onClose={() => setShowReportsModal(false)}
+      />
+
+
+      <SettingsPanel
+        isOpen={showOrgSettings}
+        onClose={() => setShowOrgSettings(false)}
+      />
+
+      <InviteMembersModal
+        isOpen={showInviteModal}
+        onClose={() => setShowInviteModal(false)}
+        onSave={(data) => {
+          console.log('Invitations saved:', data)
+          setNotification({
+            type: 'success',
+            message: `✅ Invitaciones enviadas a ${data.emails.length} colaborador${data.emails.length > 1 ? 'es' : ''}`
+          })
+        }}
       />
     </div>
   )
@@ -154,7 +343,9 @@ const AppContent = () => {
 function App() {
   return (
     <AuthProvider>
-      <AppContent />
+      <OrganizationProvider>
+        <AppContent />
+      </OrganizationProvider>
     </AuthProvider>
   )
 }
