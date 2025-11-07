@@ -7,7 +7,7 @@ const FAQs = ({ onBack }) => {
       <div className="faqs-container">
         <header className="faqs-header">
           <button className="faqs-back-btn" onClick={onBack}>
-            ← Volver al inicio
+            ← Back to home
           </button>
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '12px', marginBottom: '10px' }}>
             <span style={{ fontSize: '32px' }}>📊</span>
@@ -15,18 +15,18 @@ const FAQs = ({ onBack }) => {
               Empower <span style={{ color: '#667eea' }}>Reports</span>
             </span>
           </div>
-          <h1>❓ Preguntas Frecuentes (FAQs)</h1>
+          <h1>❓ Frequently Asked Questions (FAQs)</h1>
         </header>
 
         <div className="faqs-content">
           <section className="faq-item">
             <div className="faq-icon">📊</div>
             <div className="faq-content">
-              <h2>¿Qué hace exactamente Empower Reports?</h2>
+              <h2>What exactly does Empower Reports do?</h2>
               <p>
-                Empower Reports convierte tus archivos .pbit de Power BI en una documentación técnica interactiva, 
-                donde podés navegar todas las tablas, métricas, relaciones y dependencias internas. 
-                Ideal para entender, auditar o escalar modelos complejos.
+                Empower Reports converts your Power BI .pbit files into interactive technical documentation, 
+                where you can navigate all tables, metrics, relationships and internal dependencies. 
+                Ideal for understanding, auditing or scaling complex models.
               </p>
             </div>
           </section>
@@ -34,11 +34,11 @@ const FAQs = ({ onBack }) => {
           <section className="faq-item">
             <div className="faq-icon">🧠</div>
             <div className="faq-content">
-              <h2>¿Necesito conocimientos técnicos para usarlo?</h2>
+              <h2>Do I need technical knowledge to use it?</h2>
               <p>
-                No. Empower Reports fue diseñado para equipos de negocio, datos y desarrollo. 
-                La interfaz es simple, y el resultado es claro y visual. Si sabés usar Power BI, 
-                podés entender Empower Reports.
+                No. Empower Reports was designed for business, data and development teams. 
+                The interface is simple, and the result is clear and visual. If you know how to use Power BI, 
+                you can understand Empower Reports.
               </p>
             </div>
           </section>
@@ -46,15 +46,15 @@ const FAQs = ({ onBack }) => {
           <section className="faq-item">
             <div className="faq-icon">🧾</div>
             <div className="faq-content">
-              <h2>¿Qué tipo de información me devuelve?</h2>
-              <p>El análisis incluye:</p>
+              <h2>What kind of information does it return?</h2>
+              <p>The analysis includes:</p>
               <ul>
-                <li>Listado de tablas y columnas utilizadas</li>
-                <li>Relaciones entre tablas</li>
-                <li>Dependencias entre medidas</li>
-                <li>Fórmulas DAX utilizadas</li>
-                <li>Campos no utilizados (opcional)</li>
-                <li>Archivos descargables</li>
+                <li>List of tables and columns used</li>
+                <li>Relationships between tables</li>
+                <li>Dependencies between measures</li>
+                <li>DAX formulas used</li>
+                <li>Unused fields (optional)</li>
+                <li>Downloadable files</li>
               </ul>
             </div>
           </section>
@@ -62,10 +62,10 @@ const FAQs = ({ onBack }) => {
           <section className="faq-item">
             <div className="faq-icon">🧪</div>
             <div className="faq-content">
-              <h2>¿Esto es una prueba gratuita?</h2>
+              <h2>Is this a free trial?</h2>
               <p>
-                Sí. Estás usando una versión de prueba gratuita. Todos los análisis que hagas en esta etapa 
-                no tienen costo, y tu feedback nos ayuda a mejorar la herramienta.
+                Yes. You are using a free trial version. All analyses you do at this stage 
+                are free, and your feedback helps us improve the tool.
               </p>
             </div>
           </section>
@@ -73,10 +73,10 @@ const FAQs = ({ onBack }) => {
           <section className="faq-item">
             <div className="faq-icon">📁</div>
             <div className="faq-content">
-              <h2>¿Qué archivos puedo subir?</h2>
+              <h2>What files can I upload?</h2>
               <p>
-                Aceptamos archivos .pbit de Power BI. Próximamente se habilitará compatibilidad con .pbix 
-                exportados correctamente.
+                We accept Power BI .pbit files. Soon we will enable compatibility with correctly 
+                exported .pbix files.
               </p>
             </div>
           </section>
@@ -84,10 +84,10 @@ const FAQs = ({ onBack }) => {
           <section className="faq-item">
             <div className="faq-icon">🛠️</div>
             <div className="faq-content">
-              <h2>¿Qué pasa si tengo errores o necesito soporte?</h2>
+              <h2>What if I have errors or need support?</h2>
               <p>
-                Podés contactarnos desde la sección inferior de la página. Estamos probando la plataforma 
-                y tu feedback es clave.
+                You can contact us from the bottom section of the page. We are testing the platform 
+                and your feedback is key.
               </p>
             </div>
           </section>
@@ -95,21 +95,21 @@ const FAQs = ({ onBack }) => {
           <section className="faq-item faq-item-highlight">
             <div className="faq-icon">🔒</div>
             <div className="faq-content">
-              <h2>¿Qué pasa con mis archivos? ¿Son privados? ¿Se venden?</h2>
+              <h2>What happens to my files? Are they private? Are they sold?</h2>
               <p>
-                Sí, tus archivos .pbit se procesan de forma completamente segura y nunca se venden ni se comparten 
-                con terceros.
+                Yes, your .pbit files are processed completely securely and are never sold or shared 
+                with third parties.
               </p>
               <p>
-                No almacenamos tus datos más allá del tiempo estrictamente necesario para procesar y devolverte 
-                el resultado. El único uso que se les da es generar el análisis técnico que solicitaste.
+                We do not store your data beyond the time strictly necessary to process and return 
+                the result. The only use we give them is to generate the technical analysis you requested.
               </p>
               <p>
-                Tampoco usamos tus archivos para entrenar modelos de inteligencia artificial, ni los reutilizamos 
-                para otro fin que no sea el que vos pediste.
+                We also do not use your files to train artificial intelligence models, nor do we reuse them 
+                for any purpose other than what you requested.
               </p>
               <p className="faq-emphasis">
-                Tu archivo es tuyo, y solo lo usamos para entregarte el producto final.
+                Your file is yours, and we only use it to deliver the final product.
               </p>
             </div>
           </section>
@@ -117,19 +117,19 @@ const FAQs = ({ onBack }) => {
           <section className="faq-item">
             <div className="faq-icon">📁</div>
             <div className="faq-content">
-              <h2>¿Por qué usar archivos .pbit mejora la seguridad?</h2>
+              <h2>Why does using .pbit files improve security?</h2>
               <p>
-                El formato .pbit (Plantilla de Power BI) no contiene datos sensibles o productivos, solo estructura 
-                del modelo, relaciones, medidas DAX y metadatos.
+                The .pbit format (Power BI Template) does not contain sensitive or production data, only structure 
+                of the model, relationships, DAX measures and metadata.
               </p>
-              <p>Esto significa que:</p>
+              <p>This means that:</p>
               <ul>
-                <li>No incluye datos crudos de tus fuentes.</li>
-                <li>No expone información confidencial de clientes, ingresos o métricas.</li>
-                <li>Es seguro para compartir entre equipos sin comprometer la privacidad.</li>
+                <li>It does not include raw data from your sources.</li>
+                <li>It does not expose confidential information about customers, revenue or metrics.</li>
+                <li>It's safe to share between teams without compromising privacy.</li>
               </ul>
               <p>
-                Usar .pbit es una buena práctica para auditar, versionar y documentar tus reportes sin riesgos.
+                Using .pbit is a good practice for auditing, versioning and documenting your reports without risks.
               </p>
             </div>
           </section>
@@ -137,20 +137,20 @@ const FAQs = ({ onBack }) => {
           <section className="faq-item faq-item-highlight">
             <div className="faq-icon">🔐</div>
             <div className="faq-content">
-              <h2>¿Cómo protegen la confidencialidad del análisis?</h2>
+              <h2>How do you protect the confidentiality of the analysis?</h2>
               <ul>
-                <li>Usamos conexiones cifradas (HTTPS) en todo momento.</li>
+                <li>We use encrypted connections (HTTPS) at all times.</li>
                 <li>
-                  El archivo se borra automáticamente una vez finalizado el análisis (o cuando el usuario lo decida).
+                  The file is automatically deleted once the analysis is finished (or when the user decides).
                 </li>
                 <li>
-                  Si optás por guardar los resultados, solo vos tenés acceso mediante tu cuenta.
+                  If you choose to save the results, only you have access through your account.
                 </li>
-                <li>Contactando con nosotros.</li>
+                <li>By contacting us.</li>
               </ul>
               <p>
-                Empower Reports fue pensado desde el inicio como una herramienta técnica con foco en la seguridad, 
-                ideal para equipos que trabajan con información sensible pero necesitan documentación y colaboración.
+                Empower Reports was designed from the beginning as a technical tool focused on security, 
+                ideal for teams working with sensitive information but needing documentation and collaboration.
               </p>
             </div>
           </section>
@@ -161,4 +161,3 @@ const FAQs = ({ onBack }) => {
 }
 
 export default FAQs
-

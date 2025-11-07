@@ -7,9 +7,9 @@ const WelcomeSetup = ({ onCreateOrganization }) => {
       <div className="welcome-setup">
         <div className="welcome-setup-header">
           <div className="welcome-logo">📊</div>
-          <h1>Bienvenido a Empower Reports</h1>
+          <h1>Welcome to Empower Reports</h1>
           <p className="welcome-subtitle">
-            Creá tu espacio de trabajo para comenzar
+            Create your workspace to get started
           </p>
         </div>
 
@@ -21,8 +21,8 @@ const WelcomeSetup = ({ onCreateOrganization }) => {
           >
             <div className="welcome-option-icon">➕</div>
             <div className="welcome-option-content">
-              <h3>Crear nueva organización</h3>
-              <p>Empeza tu propio espacio de trabajo desde cero</p>
+              <h3>Create new organization</h3>
+              <p>Start your own workspace from scratch</p>
             </div>
           </button>
         </div>
@@ -32,4 +32,3 @@ const WelcomeSetup = ({ onCreateOrganization }) => {
 }
 
 export default WelcomeSetup
-

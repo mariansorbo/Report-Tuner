@@ -11,6 +11,7 @@ import SettingsPanel from './components/SettingsPanel'
 import FAQs from './components/FAQs'
 import { AuthProvider, useAuth } from './contexts/AuthContext'
 import { OrganizationProvider, useOrganization } from './contexts/OrganizationContext'
+import { useDocumentation } from './hooks/useDocumentation'
 import './App.css'
 
 const AppContent = () => {
@@ -23,8 +24,9 @@ const AppContent = () => {
   const [notification, setNotification] = useState(null)
   const { user, logout, isAuthenticated } = useAuth()
   const { needsSetup, currentOrganization, loading: orgLoading, refreshOrganizations, userOrganizations } = useOrganization()
+  const { documentationUrl, hasDocumentation, openDocumentation } = useDocumentation()
 
-  // Manejar hash routing
+  // Handle hash routing
   useEffect(() => {
     const handleHashChange = () => {
       const hash = window.location.hash
@@ -35,10 +37,10 @@ const AppContent = () => {
       }
     }
 
-    // Verificar hash inicial
+    // Check initial hash
     handleHashChange()
 
-    // Escuchar cambios en el hash
+    // Listen for hash changes
     window.addEventListener('hashchange', handleHashChange)
     return () => window.removeEventListener('hashchange', handleHashChange)
   }, [])
@@ -55,8 +57,8 @@ const AppContent = () => {
   }
 
   const handleAuthSuccess = async () => {
-    // El modal de auth maneja internamente el setup de organización
-    // Solo necesitamos refrescar las organizaciones
+    // Auth modal handles organization setup internally
+    // We just need to refresh organizations
     await refreshOrganizations()
   }
 
@@ -67,13 +69,13 @@ const AppContent = () => {
   const handleOrgCreated = (organization) => {
     setNotification({
       type: 'success',
-      message: `✅ Tu organización "${organization.name}" fue creada con éxito.`
+      message: `✅ Your organization "${organization.name}" was successfully created.`
     })
   }
 
 
-  // Si necesita setup y está autenticado, mostrar WelcomeSetup como pantalla completa
-  // Solo si no está mostrando el modal de setup (para evitar conflicto)
+  // If needs setup and authenticated, show WelcomeSetup as full screen
+  // Only if not showing the setup modal (to avoid conflict)
   if (isAuthenticated && needsSetup && !orgLoading && !showAuthModal && !showCreateOrgModal && currentView === 'home') {
     return (
       <WelcomeSetup
@@ -83,7 +85,7 @@ const AppContent = () => {
     )
   }
 
-  // Mostrar página de FAQs
+  // Show FAQs page
   if (currentView === 'faqs') {
     return (
       <>
@@ -97,7 +99,8 @@ const AppContent = () => {
 
   return (
     <div className="site">
-      <div className="beta-banner">🧪 Versión beta en pruebas. Los resultados y tiempos pueden variar.</div>
+      <div className="powerbi-banner">⚠️ Only works for users with Power BI Pro or PPU</div>
+      <div className="beta-banner">🧪 Beta version in testing. Results and times may vary.</div>
 
       {notification && (
         <div className={`notification-banner ${notification.type}`}>
@@ -150,6 +153,30 @@ const AppContent = () => {
           </a>
           <a 
             className="nav-link" 
+            href="#plans"
+            onClick={(e) => {
+              e.preventDefault()
+              if (currentView === 'faqs') {
+                setCurrentView('home')
+                window.location.hash = ''
+                setTimeout(() => {
+                  const element = document.getElementById('plans')
+                  if (element) {
+                    element.scrollIntoView({ behavior: 'smooth', block: 'start' })
+                  }
+                }, 100)
+              } else {
+                const element = document.getElementById('plans')
+                if (element) {
+                  element.scrollIntoView({ behavior: 'smooth', block: 'start' })
+                }
+              }
+            }}
+          >
+            Planes
+          </a>
+          <a 
+            className="nav-link" 
             href="#contact"
             onClick={(e) => {
               e.preventDefault()
@@ -180,28 +207,28 @@ const AppContent = () => {
               onClick={() => setShowInviteModal(true)}
               style={{ marginRight: '12px' }}
             >
-              👥 Invitar colaboradores
+              👥 Invite Team
             </button>
           )}
-          <a className="btn btn-secondary" href="#docs">Ver documentación</a>
+          <a className="btn btn-secondary" href="#docs">View Documentation</a>
           {isAuthenticated ? (
             <div className="user-menu">
               {currentOrganization && <OrganizationSelector />}
               <button
                 className="btn btn-secondary"
                 onClick={() => setShowOrgSettings(true)}
-                title="Configuración"
+                title="Settings"
               >
                 ⚙️
               </button>
-              <span className="user-greeting">Hola, {user?.name}</span>
+              <span className="user-greeting">Hello, {user?.name}</span>
               <button className="btn btn-primary-light" onClick={handleLogout}>
-                Cerrar sesión
+                Logout
               </button>
             </div>
           ) : (
             <button className="btn btn-primary-light" onClick={handleAuthClick}>
-              → Iniciar sesión
+              → Sign In
             </button>
           )}
         </div>
@@ -210,44 +237,51 @@ const AppContent = () => {
       <main className="hero">
         <section className="hero__left">
           <h1 className="hero__title">Empower <span>Reports</span></h1>
-          <p className="hero__subtitle">Documentá la lógica interna de reportes en Power BI de manera clara y navegable. Empoderá relevamientos, análisis y nuevos desarrollos.</p>
+          <p className="hero__subtitle">Document the internal logic of Power BI reports in a clear and navigable way. Empower assessments, analysis and new developments.</p>
 
           <ul className="hero__bullets">
-            <li className="bullet bad">No más depender del desarrollador original.</li>
-            <li className="bullet bad">No más navegar Power Query como una caja negra.</li>
-            <li className="bullet bad">No más documentación manual en Excel o Notion.</li>
-            <li className="bullet good">Hacer ingeniería inversa es rápido y visual.</li>
-            <li className="bullet good">Impulsa nuevos desarrollos con coherencia.</li>
-            <li className="bullet good">Promueve la estandarización del DAX y el modelo.</li>
-            <li className="bullet good">Mejora el trabajo colaborativo.</li>
+            <li className="bullet bad">No more depending on the original developer.</li>
+            <li className="bullet bad">No more navigating Power Query like a black box.</li>
+            <li className="bullet bad">No more manual documentation in Excel or Notion.</li>
+            <li className="bullet good">Reverse engineering is fast and visual.</li>
+            <li className="bullet good">Drives new developments with consistency.</li>
+            <li className="bullet good">Promotes DAX and model standardization.</li>
+            <li className="bullet good">Improves collaborative work.</li>
           </ul>
         </section>
 
         <section className="hero__right">
           <div className="card info">
-            <h3>Sobre el archivo .pbit</h3>
-            <p>El archivo .pbit es la plantilla del reporte, contiene la estructura del modelo pero no los datos. Así, Empower Reports analiza tu lógica sin acceder a información sensible.</p>
+            <h3>About the .pbit file</h3>
+            <p>The .pbit file is the report template, it contains the model structure but not the data. This way, Empower Reports analyzes your logic without accessing sensitive information.</p>
           </div>
 
           <div className="card upload">
-            <div className="upload__title">Arrastrá tu archivo .pbit aquí</div>
+            <div className="upload__title">Drag your .pbit file here</div>
             <FileUpload compact={true} onAuthRequired={handleAuthClick} />
             <button 
               className="btn btn-primary-light full"
               onClick={() => setShowReportsModal(true)}
               style={{ marginTop: '12px' }}
             >
-              📋 Ver Reportes
+              📋 View Reports
             </button>
-            <button className="btn btn-secondary full">Ver Documentación</button>
+            <button 
+              className={`btn full ${hasDocumentation ? 'btn-documentation-enabled' : 'btn-documentation-disabled'}`}
+              onClick={openDocumentation}
+              disabled={!hasDocumentation}
+              title={hasDocumentation ? 'View organization documentation' : 'No documentation configured'}
+            >
+              📚 View Documentation
+            </button>
           </div>
 
           <div className="card help" id="faqs">
-            <h3>¿Cómo obtener tu .pbit?</h3>
+            <h3>How to get your .pbit?</h3>
             <ol>
-              <li>Abrí el .pbix en Power BI Desktop.</li>
-              <li>Archivo → Exportar → Plantilla de Power BI (.pbit).</li>
-              <li>Guardá y arrastrá aquí.</li>
+              <li>Open the .pbix in Power BI Desktop.</li>
+              <li>File → Export → Power BI Template (.pbit).</li>
+              <li>Save and drag here.</li>
             </ol>
           </div>
         </section>
@@ -257,24 +291,135 @@ const AppContent = () => {
         <div className="about-container">
           <h2 className="about-title">¿Quiénes somos?</h2>
           <div className="about-content">
-            <p>Empower Reports nace de la experiencia directa con los desafíos de mantener y comprender modelos complejos de Power BI.</p>
-            <p>Somos un equipo de desarrolladores y analistas que creemos que la documentación debe ser una herramienta de crecimiento, no un obstáculo.</p>
-            <p>Creamos esta plataforma para hacer visible la lógica detrás de cada modelo, acelerar la colaboración y facilitar el trabajo técnico de quienes construyen reportes día a día.</p>
+            <div className="about-card">
+              <div className="about-icon">🎯</div>
+              <h3>Nuestra Misión</h3>
+              <p>Empower Reports nace de la experiencia directa con los desafíos de mantener y comprender modelos complejos de Power BI.</p>
+            </div>
+            <div className="about-card">
+              <div className="about-icon">👥</div>
+              <h3>Nuestro Equipo</h3>
+              <p>Somos un equipo de desarrolladores y analistas que creemos que la documentación debe ser una herramienta de crecimiento, no un obstáculo.</p>
+            </div>
+            <div className="about-card">
+              <div className="about-icon">⚡</div>
+              <h3>Nuestra Visión</h3>
+              <p>Creamos esta plataforma para hacer visible la lógica detrás de cada modelo, acelerar la colaboración y facilitar el trabajo técnico de quienes construyen reportes día a día.</p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section id="plans" className="plans-section">
+        <div className="plans-container">
+          <h2 className="plans-title">Nuestros Planes</h2>
+          <p className="plans-subtitle">Elegí el plan que mejor se adapte a tus necesidades</p>
+          <div className="plans-content">
+            <div className="plan-card">
+              <div className="plan-header">
+                <div className="plan-icon">🎯</div>
+                <h3 className="plan-name">Free Trial</h3>
+                <div className="plan-price">
+                  <span className="price-amount">Gratis</span>
+                </div>
+              </div>
+              <div className="plan-features">
+                <ul>
+                  <li>✓ 14 días de prueba</li>
+                  <li>✓ Hasta 3 reportes</li>
+                  <li>✓ Documentación básica</li>
+                  <li>✓ Análisis de Power Query</li>
+                  <li>✓ Exportación PDF</li>
+                </ul>
+              </div>
+              <button className="btn btn-upgrade">Upgrade</button>
+            </div>
+
+            <div className="plan-card">
+              <div className="plan-header">
+                <div className="plan-icon">💎</div>
+                <h3 className="plan-name">Pro</h3>
+                <div className="plan-price">
+                  <span className="price-currency">$</span>
+                  <span className="price-amount">29</span>
+                  <span className="price-period">/mes</span>
+                </div>
+              </div>
+              <div className="plan-features">
+                <ul>
+                  <li>✓ Reportes ilimitados</li>
+                  <li>✓ Documentación avanzada</li>
+                  <li>✓ Análisis DAX completo</li>
+                  <li>✓ Exportación múltiple</li>
+                  <li>✓ Soporte prioritario</li>
+                </ul>
+              </div>
+              <button className="btn btn-upgrade">Upgrade</button>
+            </div>
+
+            <div className="plan-card plan-featured">
+              <div className="plan-badge">Más Popular</div>
+              <div className="plan-header">
+                <div className="plan-icon">👥</div>
+                <h3 className="plan-name">Teams</h3>
+                <div className="plan-price">
+                  <span className="price-currency">$</span>
+                  <span className="price-amount">79</span>
+                  <span className="price-period">/mes</span>
+                </div>
+              </div>
+              <div className="plan-features">
+                <ul>
+                  <li>✓ Todo lo de Pro</li>
+                  <li>✓ Hasta 10 usuarios</li>
+                  <li>✓ Colaboración en equipo</li>
+                  <li>✓ Gestión de permisos</li>
+                  <li>✓ Workspace compartido</li>
+                  <li>✓ Soporte prioritario</li>
+                </ul>
+              </div>
+              <button className="btn btn-upgrade btn-upgrade-featured">Upgrade</button>
+            </div>
+
+            <div className="plan-card">
+              <div className="plan-header">
+                <div className="plan-icon">🏢</div>
+                <h3 className="plan-name">Enterprise</h3>
+                <div className="plan-price">
+                  <span className="price-amount">Personalizado</span>
+                </div>
+              </div>
+              <div className="plan-features">
+                <ul>
+                  <li>✓ Todo lo de Teams</li>
+                  <li>✓ Usuarios ilimitados</li>
+                  <li>✓ SSO y seguridad avanzada</li>
+                  <li>✓ API de integración</li>
+                  <li>✓ SLA garantizado</li>
+                  <li>✓ Soporte dedicado 24/7</li>
+                </ul>
+              </div>
+              <button className="btn btn-upgrade">Upgrade</button>
+            </div>
           </div>
         </div>
       </section>
 
       <section id="contact" className="feedback-section">
         <div className="feedback-container">
-          <h2 className="feedback-title">⭐ Queremos escuchar tu experiencia</h2>
-          <p className="feedback-description">
-            Este proyecto está en fase de pruebas. Contanos qué te pareció, qué podríamos mejorar o cómo debería evolucionar. 
-            Cada comentario nos ayuda a construir una herramienta más útil para los usuarios de Power BI.
-          </p>
+          <div className="feedback-header">
+            <div className="feedback-icon-large">💬</div>
+            <h2 className="feedback-title">We Want to Hear About Your Experience</h2>
+            <p className="feedback-description">
+              This project is in testing phase. Tell us what you think, what we could improve, or how it should evolve.
+              <br/>
+              <strong>Every comment helps us build a more useful tool for Power BI users.</strong>
+            </p>
+          </div>
           
           <form className="feedback-form">
             <div className="form-group">
-              <label htmlFor="nombre">Nombre *</label>
+              <label htmlFor="nombre">Name *</label>
               <input type="text" id="nombre" name="nombre" required />
             </div>
             
@@ -284,28 +429,28 @@ const AppContent = () => {
             </div>
             
             <div className="form-group">
-              <label htmlFor="experiencia">Tu experiencia</label>
+              <label htmlFor="experiencia">Your Experience</label>
               <textarea 
                 id="experiencia" 
                 name="experiencia" 
                 rows="4" 
-                placeholder="Contanos qué te pareció, sugerencias, ideas...."
+                placeholder="Tell us what you thought, suggestions, ideas...."
               ></textarea>
             </div>
             
-            <button type="submit" className="btn btn-feedback">Enviar Feedback</button>
+            <button type="submit" className="btn btn-feedback">Send Feedback</button>
           </form>
           
           <div className="feedback-footer">
-            <p>🧡 Gracias por ayudarnos a mejorar 💛</p>
-            <p>Empower Reports está en beta: tu aporte tiene un impacto real.</p>
+            <p>🧡 Thank you for helping us improve 💛</p>
+            <p>Empower Reports is in beta: your input has a real impact.</p>
           </div>
         </div>
       </section>
 
       <footer className="site-footer">
         <div className="footer__brand">Empower Reports</div>
-        <div className="footer__legal">© 2024 Empower Reports. Todos los derechos reservados.</div>
+        <div className="footer__legal">© 2024 Empower Reports. All rights reserved.</div>
       </footer>
 
       <AuthModal 
@@ -332,7 +477,7 @@ const AppContent = () => {
           console.log('Invitations saved:', data)
           setNotification({
             type: 'success',
-            message: `✅ Invitaciones enviadas a ${data.emails.length} colaborador${data.emails.length > 1 ? 'es' : ''}`
+            message: `✅ Invitations sent to ${data.members.length} team member${data.members.length > 1 ? 's' : ''}`
           })
         }}
       />

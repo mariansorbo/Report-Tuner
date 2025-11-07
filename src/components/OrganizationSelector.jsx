@@ -49,7 +49,7 @@ const OrganizationSelector = () => {
       >
         <span className="org-selector-icon">🏢</span>
         <span className="org-selector-name">
-          {currentOrganization?.name || 'Sin organización'}
+          {currentOrganization?.name || 'No organization'}
         </span>
         <span className="org-selector-arrow">{isOpen ? '▲' : '▼'}</span>
       </button>
@@ -59,7 +59,7 @@ const OrganizationSelector = () => {
           {activeOrgs.length > 0 && (
             <>
               <div className="org-dropdown-section">
-                <div className="org-dropdown-label">Organizaciones activas</div>
+                <div className="org-dropdown-label">Active organizations</div>
                 {activeOrgs.map(org => (
                   <button
                     key={org.id}
@@ -78,16 +78,16 @@ const OrganizationSelector = () => {
 
           {archivedOrgs.length > 0 && (
             <div className="org-dropdown-section">
-              <div className="org-dropdown-label">Archivadas</div>
+              <div className="org-dropdown-label">Archived</div>
               {archivedOrgs.map(org => (
                 <button
                   key={org.id}
                   className="org-dropdown-item archived"
                   onClick={() => handleSwitchOrg(org.id)}
-                  title="Reactivar organización"
+                  title="Reactivate organization"
                 >
                   <span className="org-item-name">{org.name}</span>
-                  <span className="org-item-status">📦 Archivada</span>
+                  <span className="org-item-status">📦 Archived</span>
                 </button>
               ))}
             </div>
@@ -99,4 +99,3 @@ const OrganizationSelector = () => {
 }
 
 export default OrganizationSelector
-

@@ -2,7 +2,16 @@
 -- EMPOWER REPORTS - Database Schema (SQL Server)
 --============================================================================
 -- Sistema SaaS para documentación de reportes de Power BI
--- Soporta modo Free Trial y planes comerciales (Basic, Teams, Enterprise)
+-- Soporta modo Free Trial y planes comerciales (Basic, Teams, Enterprise, Enterprise Pro)
+-- 
+-- ESQUEMA SIMPLIFICADO: Solo lo esencial
+-- A/B Testing: Se maneja con HubSpot
+-- Pricing complejo: Se maneja con Stripe + HubSpot
+-- 
+-- Ejecutar también:
+--   - organization_workflows.sql (procedimientos de creación/unión)
+--   - state_machine_and_workflows.sql (validaciones y workflows)
+--   - enterprise_pro_plan_v2.sql (solo si necesitas Enterprise Pro)
 --============================================================================
 
 USE master;
@@ -39,6 +48,7 @@ CREATE TABLE plans (
     price_yearly DECIMAL(10, 2) NULL, -- NULL para free_trial
     stripe_price_id_monthly VARCHAR(255) NULL,
     stripe_price_id_yearly VARCHAR(255) NULL,
+    max_organizations INT NULL, -- Máximo de organizaciones gestionadas (solo Enterprise Pro), NULL = no aplica
     is_active BIT NOT NULL DEFAULT 1,
     created_at DATETIME2 NOT NULL DEFAULT GETUTCDATE(),
     updated_at DATETIME2 NOT NULL DEFAULT GETUTCDATE()
@@ -148,7 +158,7 @@ CREATE TABLE organization_members (
     id UNIQUEIDENTIFIER PRIMARY KEY DEFAULT NEWID(),
     organization_id UNIQUEIDENTIFIER NOT NULL,
     user_id UNIQUEIDENTIFIER NOT NULL,
-    role VARCHAR(50) NOT NULL DEFAULT 'member' CHECK (role IN ('admin', 'member', 'viewer')),
+    role VARCHAR(50) NOT NULL DEFAULT 'member' CHECK (role IN ('admin', 'admin_global', 'member', 'viewer')),
     is_primary BIT NOT NULL DEFAULT 0, -- Indica si esta es la organización principal del usuario
     invited_by UNIQUEIDENTIFIER NULL, -- Usuario que invitó
     invitation_token VARCHAR(255) NULL, -- Token para invitaciones pendientes
@@ -338,12 +348,48 @@ EXEC sp_addextendedproperty
 GO
 
 -- ============================================================================
+-- TABLA: organization_documentation
+-- ============================================================================
+-- URLs de documentación personalizada por organización
+-- ============================================================================
+
+IF OBJECT_ID('organization_documentation', 'U') IS NOT NULL DROP TABLE organization_documentation;
+GO
+
+CREATE TABLE organization_documentation (
+    id UNIQUEIDENTIFIER PRIMARY KEY DEFAULT NEWID(),
+    organization_id UNIQUEIDENTIFIER NOT NULL UNIQUE, -- Una organización solo puede tener una URL
+    documentation_url VARCHAR(500) NOT NULL,
+    description TEXT NULL, -- Descripción opcional de la documentación
+    is_active BIT NOT NULL DEFAULT 1,
+    created_by UNIQUEIDENTIFIER NULL, -- Usuario que configuró la URL
+    created_at DATETIME2 NOT NULL DEFAULT GETUTCDATE(),
+    updated_at DATETIME2 NOT NULL DEFAULT GETUTCDATE(),
+    
+    CONSTRAINT fk_org_doc_organization FOREIGN KEY (organization_id) REFERENCES organizations(id) ON DELETE CASCADE,
+    CONSTRAINT fk_org_doc_created_by FOREIGN KEY (created_by) REFERENCES users(id)
+);
+GO
+
+CREATE INDEX idx_org_doc_organization ON organization_documentation(organization_id);
+CREATE INDEX idx_org_doc_active ON organization_documentation(is_active);
+GO
+
+-- Comentarios
+EXEC sp_addextendedproperty 
+    @name = N'MS_Description', 
+    @value = N'URLs de documentación personalizada por organización. Cada organización puede tener un link a su documentación.', 
+    @level0type = N'SCHEMA', @level0name = N'dbo', 
+    @level1type = N'TABLE', @level1name = N'organization_documentation';
+GO
+
+-- ============================================================================
 -- DATOS INICIALES: plans
 -- ============================================================================
 -- Insertar los planes predefinidos con sus límites
 -- ============================================================================
 
-INSERT INTO plans (id, name, description, max_users, max_reports, max_storage_mb, features, price_monthly, price_yearly, is_active)
+INSERT INTO plans (id, name, description, max_users, max_reports, max_storage_mb, max_organizations, features, price_monthly, price_yearly, is_active)
 VALUES
     (
         'free_trial',
@@ -352,6 +398,7 @@ VALUES
         10, -- Máximo 10 usuarios durante el trial
         100, -- Máximo 100 reportes
         5000, -- 5GB de almacenamiento
+        NULL, -- max_organizations: no aplica
         '{"api_access": false, "branding": false, "audit_log": false, "priority_support": false}',
         NULL, -- Gratis
         NULL, -- Gratis
@@ -364,6 +411,7 @@ VALUES
         1, -- Solo 1 usuario
         30, -- Hasta 30 reportes
         1000, -- 1GB
+        NULL, -- max_organizations: no aplica
         '{"api_access": false, "branding": false, "audit_log": false, "priority_support": false}',
         9.99, -- Ejemplo de precio mensual
         99.99, -- Ejemplo de precio anual
@@ -376,6 +424,7 @@ VALUES
         3, -- Hasta 3 usuarios
         50, -- Hasta 50 reportes compartidos
         5000, -- 5GB
+        NULL, -- max_organizations: no aplica
         '{"api_access": false, "branding": false, "audit_log": false, "priority_support": false}',
         29.99,
         299.99,
@@ -388,9 +437,23 @@ VALUES
         10, -- Hasta 10 usuarios
         300, -- Hasta 300 reportes
         50000, -- 50GB
+        NULL, -- max_organizations: no aplica
         '{"api_access": true, "branding": true, "audit_log": true, "priority_support": true}',
         99.99,
         999.99,
+        1
+    ),
+    (
+        'enterprise_pro',
+        'Enterprise Pro',
+        'Plan para empresas de consultoría que gestionan múltiples clientes. Permite crear y gestionar hasta 5 organizaciones separadas con metadata confidencial.',
+        50, -- Hasta 50 usuarios (cubrir múltiples equipos)
+        1000, -- Hasta 1000 reportes (múltiples clientes)
+        200000, -- 200GB de almacenamiento
+        5, -- Máximo 5 organizaciones gestionadas
+        '{"api_access": true, "branding": true, "audit_log": true, "priority_support": true, "multi_organization": true, "organization_isolation": true, "advanced_user_management": true, "global_admin_role": true}',
+        199.99,
+        1999.99,
         1
     );
 GO
@@ -479,6 +542,19 @@ BEGIN
 END;
 GO
 
+-- Trigger para organization_documentation
+CREATE OR ALTER TRIGGER trg_org_documentation_updated_at
+ON organization_documentation
+AFTER UPDATE
+AS
+BEGIN
+    SET NOCOUNT ON;
+    UPDATE organization_documentation
+    SET updated_at = GETUTCDATE()
+    WHERE id IN (SELECT id FROM inserted);
+END;
+GO
+
 -- ============================================================================
 -- VISTAS ÚTILES
 -- ============================================================================
@@ -519,10 +595,13 @@ SELECT
     u.last_login_at,
     om.organization_id AS primary_organization_id,
     o.name AS primary_organization_name,
+    od.documentation_url AS organization_documentation_url,
+    CASE WHEN od.documentation_url IS NOT NULL AND od.is_active = 1 THEN 1 ELSE 0 END AS has_documentation,
     u.created_at
 FROM users u
 LEFT JOIN organization_members om ON om.user_id = u.id AND om.is_primary = 1 AND om.left_at IS NULL
 LEFT JOIN organizations o ON o.id = om.organization_id
+LEFT JOIN organization_documentation od ON od.organization_id = o.id AND od.is_active = 1
 WHERE u.is_active = 1;
 GO
 
@@ -598,6 +677,22 @@ BEGIN
 END;
 GO
 
+-- Función: Obtener URL de documentación de una organización
+CREATE OR ALTER FUNCTION fn_get_organization_documentation_url(@organization_id UNIQUEIDENTIFIER)
+RETURNS VARCHAR(500)
+AS
+BEGIN
+    DECLARE @url VARCHAR(500);
+    
+    SELECT @url = documentation_url
+    FROM organization_documentation
+    WHERE organization_id = @organization_id
+    AND is_active = 1;
+    
+    RETURN @url;
+END;
+GO
+
 -- ============================================================================
 -- ÍNDICES ADICIONALES PARA PERFORMANCE
 -- ============================================================================
@@ -616,11 +711,19 @@ GO
 -- COMENTARIOS FINALES
 -- ============================================================================
 
-PRINT '✅ Schema de base de datos creado exitosamente';
-PRINT '📊 Tablas creadas: users, organizations, plans, subscriptions, subscription_history, reports, organization_members';
-PRINT '📈 Planes iniciales insertados: free_trial, basic, teams, enterprise';
-PRINT '🔍 Vistas creadas: vw_organizations_with_subscription, vw_users_with_primary_org';
-PRINT '⚙️ Funciones creadas: fn_can_add_user, fn_can_add_report';
-PRINT '🔄 Triggers configurados para updated_at automático';
+PRINT 'Schema de base de datos creado exitosamente';
+PRINT 'Tablas: users, organizations, organization_documentation, plans, subscriptions, subscription_history, reports, organization_members';
+PRINT 'Planes: free_trial, basic, teams, enterprise, enterprise_pro';
+PRINT 'Vistas: vw_organizations_with_subscription, vw_users_with_primary_org';
+PRINT 'Funciones: fn_can_add_user, fn_can_add_report, fn_get_organization_documentation_url';
+PRINT 'Triggers: updated_at automatico (7 tablas)';
+PRINT '';
+PRINT 'Proximos pasos:';
+PRINT '   - Ejecutar organization_workflows.sql';
+PRINT '   - Ejecutar state_machine_and_workflows.sql';
+PRINT '   - Ejecutar enterprise_pro_plan_v2.sql (solo si necesitas Enterprise Pro)';
+PRINT '';
+PRINT 'A/B Testing: Se maneja con HubSpot';
+PRINT 'Pricing complejo: Se maneja con Stripe + HubSpot';
 GO
 

@@ -15,7 +15,7 @@ const FileUpload = ({ compact = true, onAuthRequired }) => {
   const accountName = import.meta.env.VITE_AZURE_ACCOUNT_NAME
   const sasToken = import.meta.env.VITE_AZURE_SAS_TOKEN // Debe empezar con "sv="
   const containerName = import.meta.env.VITE_CONTAINER_NAME
-  const maxFileSize = parseInt(import.meta.env.VITE_MAX_FILE_SIZE) || 31457280 // 30MB por defecto
+  const maxFileSize = parseInt(import.meta.env.VITE_MAX_FILE_SIZE) || 31457280 // 30MB default
 
   // Debug: verificar variables de entorno
   console.log('Account Name:', accountName ? 'Presente' : 'FALTANTE')
@@ -25,17 +25,17 @@ const FileUpload = ({ compact = true, onAuthRequired }) => {
 
   const validateFile = (file) => {
     if (!file) {
-      setError('Por favor selecciona un archivo')
+      setError('Please select a file')
       return false
     }
 
     if (!file.name.toLowerCase().endsWith('.pbit')) {
-      setError('El archivo debe ser de tipo .pbit')
+      setError('File must be of type .pbit')
       return false
     }
 
     if (file.size > maxFileSize) {
-      setError(`El archivo es demasiado grande. Tamaño máximo: ${Math.round(maxFileSize / 1024 / 1024)}MB`)
+      setError(`File is too large. Maximum size: ${Math.round(maxFileSize / 1024 / 1024)}MB`)
       return false
     }
 
@@ -46,7 +46,7 @@ const FileUpload = ({ compact = true, onAuthRequired }) => {
     try {
       // Validar que tenemos el SAS Token (navegador)
       if (!accountName || !sasToken) {
-        throw new Error('Config faltante. Define VITE_AZURE_ACCOUNT_NAME y VITE_AZURE_SAS_TOKEN en .env')
+        throw new Error('Missing config. Define VITE_AZURE_ACCOUNT_NAME and VITE_AZURE_SAS_TOKEN in .env')
       }
 
       console.log('Iniciando upload usando SAS Token...')
@@ -71,13 +71,13 @@ const FileUpload = ({ compact = true, onAuthRequired }) => {
         }
       }
 
-      // Subir el archivo
+      // Upload the file
       await blockBlobClient.upload(file, file.size, uploadOptions)
       
       return { success: true, blobName }
     } catch (err) {
       console.error('Error uploading to Azure:', err)
-      throw new Error(`Error al subir el archivo: ${err.message}`)
+      throw new Error(`Error uploading file: ${err.message}`)
     }
   }
 
@@ -107,7 +107,7 @@ const FileUpload = ({ compact = true, onAuthRequired }) => {
   const handleUpload = async () => {
     // Verificar autenticación primero
     if (!isAuthenticated) {
-      setError('Debes iniciar sesión para subir archivos')
+      setError('You must sign in to upload files')
       if (onAuthRequired) {
         onAuthRequired()
       }
@@ -115,7 +115,7 @@ const FileUpload = ({ compact = true, onAuthRequired }) => {
     }
 
     if (!files || files.length === 0) {
-      setError('Por favor selecciona uno o más archivos primero')
+      setError('Please select one or more files first')
       return
     }
 
@@ -136,9 +136,9 @@ const FileUpload = ({ compact = true, onAuthRequired }) => {
 
     const failed = results.filter(r => !r.success)
     if (failed.length === 0) {
-      setMessage(`✅ ${results.length} archivo(s) subido(s) exitosamente`)
+      setMessage(`✅ ${results.length} file(s) uploaded successfully`)
     } else {
-      setError(`Algunos archivos fallaron: ${failed.map(f => f.file).join(', ')}`)
+      setError(`Some files failed: ${failed.map(f => f.file).join(', ')}`)
     }
 
     // Reset selección
@@ -166,18 +166,18 @@ const FileUpload = ({ compact = true, onAuthRequired }) => {
         <div className="upload-icon">📁</div>
         <p className="upload-text">
           {!isAuthenticated 
-            ? 'Inicia sesión para subir archivos' 
+            ? 'Sign in to upload files' 
             : files.length 
-              ? `${files.length} archivo(s) seleccionado(s)` 
-              : 'Arrastra tus archivos .pbit aquí'
+              ? `${files.length} file(s) selected` 
+              : 'Drag your .pbit files here'
           }
         </p>
         <p className="upload-subtext">
           {!isAuthenticated 
-            ? 'Necesitas estar loggeado para usar esta función' 
+            ? 'You need to be logged in to use this feature' 
             : files.length 
-              ? 'o selecciona más' 
-              : 'o haz clic para seleccionar'
+              ? 'or select more' 
+              : 'or click to select'
           }
         </p>
         <input
@@ -239,19 +239,19 @@ const FileUpload = ({ compact = true, onAuthRequired }) => {
         disabled={!isAuthenticated || files.length === 0 || uploading}
       >
         {!isAuthenticated 
-          ? 'Inicia sesión para subir' 
+          ? 'Sign in to upload' 
           : uploading 
-            ? 'Subiendo...' 
-            : 'Cargar Archivo'
+            ? 'Uploading...' 
+            : 'Upload File'
         }
       </button>
       {!compact && (
         <div className="help-text">
-          <p><strong>¿Cómo obtener tu archivo .pbit?</strong></p>
+          <p><strong>How to get your .pbit file?</strong></p>
           <ol>
-            <li>Abre el .pbix en Power BI Desktop</li>
-            <li>Archivo → Exportar → Plantilla de Power BI (.pbit)</li>
-            <li>Guarda y arrastra aquí</li>
+            <li>Open the .pbix in Power BI Desktop</li>
+            <li>File → Export → Power BI Template (.pbit)</li>
+            <li>Save and drag here</li>
           </ol>
         </div>
       )}

@@ -546,6 +546,139 @@
   font-size: 13px;
 }
 
+/* Beta Notice */
+.beta-notice {
+  background: linear-gradient(135deg, #E8F5E9 0%, #C8E6C9 100%);
+  border: 2px solid #4CAF50;
+  border-radius: 12px;
+  padding: 20px;
+  margin-bottom: 24px;
+}
+
+.beta-notice h3 {
+  margin: 0 0 8px 0;
+  color: #2E7D32;
+  font-size: 18px;
+  font-weight: 700;
+}
+
+.beta-notice p {
+  margin: 0;
+  color: #2E7D32;
+  font-size: 14px;
+  line-height: 1.6;
+}
+
+/* Disabled Card */
+.disabled-card {
+  opacity: 0.6;
+  position: relative;
+}
+
+.disabled-card::after {
+  content: '🔒';
+  position: absolute;
+  top: 20px;
+  right: 20px;
+  font-size: 24px;
+  opacity: 0.4;
+}
+
+.disabled-text {
+  color: #999;
+  font-size: 14px;
+  line-height: 1.6;
+}
+
+.disabled-text small {
+  display: block;
+  margin-top: 4px;
+  color: #bbb;
+  font-size: 12px;
+}
+
+/* Integration Disabled */
+.integration-disabled {
+  opacity: 0.7;
+  background: #f9f9f9;
+}
+
+.integration-disabled strong {
+  color: #666;
+}
+
+.integration-disabled p {
+  color: #999;
+}
+
+.status-badge {
+  display: inline-block;
+  padding: 4px 12px;
+  border-radius: 12px;
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-top: 8px;
+}
+
+.status-soon {
+  background: #FFF9E6;
+  color: #F57C00;
+  border: 1px solid #FFE082;
+}
+
+.integration-note {
+  margin-top: 32px;
+  padding: 20px;
+  background: #F5F5F5;
+  border-radius: 12px;
+  border-left: 4px solid var(--yellow-primary, #F3C911);
+}
+
+.integration-note p {
+  margin: 0;
+  color: #666;
+  font-size: 14px;
+  line-height: 1.6;
+}
+
+.integration-note strong {
+  color: #333;
+}
+
+/* Preference Groups */
+.preference-group {
+  margin-bottom: 32px;
+  padding-bottom: 24px;
+  border-bottom: 1px solid #f0f0f0;
+}
+
+.preference-group:last-of-type {
+  border-bottom: none;
+}
+
+.preference-group h3 {
+  margin: 0 0 16px 0;
+  font-size: 16px;
+  font-weight: 600;
+  color: #333;
+}
+
+.settings-note {
+  display: block;
+  margin-top: 8px;
+  font-size: 12px;
+  color: #999;
+  font-style: italic;
+}
+
+.danger-zone-actions {
+  display: flex;
+  justify-content: center;
+  margin-top: 16px;
+}
+
 @media (max-width: 968px) {
   .settings-panel {
     flex-direction: column;

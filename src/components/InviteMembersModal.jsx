@@ -2,81 +2,63 @@ import React, { useState } from 'react'
 import './InviteMembersModal.css'
 
 const InviteMembersModal = ({ isOpen, onClose, onSave }) => {
-  const [emailList, setEmailList] = useState([{ email: '', role: 'member', selected: false }])
-  const [showLinkOption, setShowLinkOption] = useState(false)
+  // Dummy user list with statuses
+  const [members, setMembers] = useState([
+    { email: 'gonzalo@citenza.com', role: 'global_admin', status: 'Accepted' },
+    { email: 'camila@citenza.com', role: 'admin', status: 'Accepted' },
+    { email: 'tiago@consultora.com', role: 'owner', status: 'Invited' },
+    { email: 'juan.perez@empresa.com', role: 'editor', status: 'Invited' },
+    { email: 'maria.garcia@startup.io', role: 'editor', status: 'Accepted' }
+  ])
+  
+  const [newEmail, setNewEmail] = useState('')
+  const [newRole, setNewRole] = useState('editor')
+  const [showNewEmailField, setShowNewEmailField] = useState(false)
+  
+  const [activeTab, setActiveTab] = useState('email') // 'email' or 'link'
   const [invitationLink, setInvitationLink] = useState('')
-  const [activeTab, setActiveTab] = useState('email') // 'email' o 'link'
 
   if (!isOpen) return null
 
   const handleAddEmail = () => {
-    setEmailList([...emailList, { email: '', role: 'member', selected: false }])
-  }
-
-  const handleEmailChange = (index, value) => {
-    const updated = [...emailList]
-    updated[index].email = value
-    setEmailList(updated)
-  }
-
-  const handleRoleChange = (index, newRole) => {
-    const updated = [...emailList]
-    updated[index].role = newRole
-    setEmailList(updated)
-  }
-
-  const handleToggleSelect = (index) => {
-    const updated = [...emailList]
-    updated[index].selected = !updated[index].selected
-    setEmailList(updated)
+    if (newEmail.trim() && newEmail.includes('@')) {
+      setMembers([...members, { email: newEmail, role: newRole, status: 'Invited' }])
+      setNewEmail('')
+      setNewRole('member')
+      setShowNewEmailField(false)
+    }
   }
 
   const handleDelete = (index) => {
-    setEmailList(emailList.filter((_, i) => i !== index))
+    setMembers(members.filter((_, i) => i !== index))
   }
 
-  const handleDeleteSelected = () => {
-    setEmailList(emailList.filter(item => !item.selected))
-  }
-
-  const handleBulkRoleChange = (newRole) => {
-    setEmailList(emailList.map(item => 
-      item.selected ? { ...item, role: newRole } : item
-    ))
+  const handleRoleChange = (index, newRole) => {
+    const updated = [...members]
+    updated[index].role = newRole
+    setMembers(updated)
   }
 
   const handleGenerateLink = () => {
-    // Generar un link único simulado
+    // Generate simulated unique link
     const token = Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15)
     setInvitationLink(`${window.location.origin}/invite/${token}`)
   }
 
   const handleCopyLink = () => {
     navigator.clipboard.writeText(invitationLink)
-    // Podrías agregar un toast aquí
+    // You could add a toast here
   }
 
   const handleSave = () => {
-    const validEmails = emailList.filter(item => item.email.trim() && item.email.includes('@'))
-    if (validEmails.length === 0 && !invitationLink) {
-      return
-    }
-    
     if (onSave) {
       onSave({
-        emails: validEmails,
+        members: members,
         link: invitationLink
       })
     }
     onClose()
-    // Reset
-    setEmailList([{ email: '', role: 'member', selected: false }])
-    setInvitationLink('')
-    setActiveTab('email')
   }
-
-  const hasSelected = emailList.some(item => item.selected)
-  const selectedCount = emailList.filter(item => item.selected).length
 
   return (
     <div className="invite-modal-overlay" onClick={onClose}>
@@ -115,30 +97,28 @@ const InviteMembersModal = ({ isOpen, onClose, onSave }) => {
           {activeTab === 'email' ? (
             <>
               <div className="invite-email-section">
-                {emailList.map((item, index) => (
+                {members.map((member, index) => (
                   <div key={index} className="invite-email-item">
                     <input
-                      type="checkbox"
-                      checked={item.selected}
-                      onChange={() => handleToggleSelect(index)}
-                      className="invite-checkbox"
-                    />
-                    <input
                       type="email"
-                      placeholder="correo@empresa.com"
-                      value={item.email}
-                      onChange={(e) => handleEmailChange(index, e.target.value)}
+                      placeholder="email@company.com"
+                      value={member.email}
+                      readOnly
                       className="invite-email-input"
                     />
                     <select
-                      value={item.role}
+                      value={member.role}
                       onChange={(e) => handleRoleChange(index, e.target.value)}
                       className="invite-role-select"
                     >
+                      <option value="global_admin">Global Admin</option>
                       <option value="admin">Admin</option>
-                      <option value="member">Miembro</option>
-                      <option value="viewer">Viewer</option>
+                      <option value="owner">Owner</option>
+                      <option value="editor">Editor</option>
                     </select>
+                    <span className={`invite-status invite-status-${member.status.toLowerCase()}`}>
+                      {member.status}
+                    </span>
                     <button
                       type="button"
                       onClick={() => handleDelete(index)}
@@ -149,54 +129,76 @@ const InviteMembersModal = ({ isOpen, onClose, onSave }) => {
                     </button>
                   </div>
                 ))}
+
+                {showNewEmailField && (
+                  <div className="invite-email-item invite-new-email">
+                    <input
+                      type="email"
+                      placeholder="email@company.com"
+                      value={newEmail}
+                      onChange={(e) => setNewEmail(e.target.value)}
+                      className="invite-email-input"
+                      autoFocus
+                    />
+                    <select
+                      value={newRole}
+                      onChange={(e) => setNewRole(e.target.value)}
+                      className="invite-role-select"
+                    >
+                      <option value="global_admin">Global Admin</option>
+                      <option value="admin">Admin</option>
+                      <option value="owner">Owner</option>
+                      <option value="editor">Editor</option>
+                    </select>
+                    <button
+                      type="button"
+                      onClick={handleAddEmail}
+                      className="invite-confirm-btn"
+                      title="Agregar"
+                    >
+                      ✓
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setShowNewEmailField(false)
+                        setNewEmail('')
+                        setNewRole('editor')
+                      }}
+                      className="invite-cancel-btn"
+                      title="Cancelar"
+                    >
+                      ✕
+                    </button>
+                  </div>
+                )}
               </div>
 
-              {hasSelected && (
-                <div className="invite-bulk-actions">
-                  <span className="invite-selected-count">
-                    {selectedCount} seleccionado{selectedCount > 1 ? 's' : ''}
-                  </span>
-                  <select
-                    onChange={(e) => handleBulkRoleChange(e.target.value)}
-                    className="invite-bulk-role-select"
-                    defaultValue=""
-                  >
-                    <option value="" disabled>Cambiar rol de seleccionados</option>
-                    <option value="admin">Admin</option>
-                    <option value="member">Miembro</option>
-                    <option value="viewer">Viewer</option>
-                  </select>
-                  <button
-                    type="button"
-                    onClick={handleDeleteSelected}
-                    className="invite-bulk-delete-btn"
-                  >
-                    🗑️ Eliminar seleccionados
-                  </button>
-                </div>
+              {!showNewEmailField && (
+                <button
+                  type="button"
+                  onClick={() => setShowNewEmailField(true)}
+                  className="invite-add-btn"
+                >
+                  + Agregar otro
+                </button>
               )}
-
-              <button
-                type="button"
-                onClick={handleAddEmail}
-                className="invite-add-btn"
-              >
-                + Agregar otro
-              </button>
             </>
           ) : (
             <div className="invite-link-section">
-              <p className="invite-link-description">
-                Generá un link de invitación que podés compartir con tu equipo
-              </p>
               {!invitationLink ? (
-                <button
-                  type="button"
-                  onClick={handleGenerateLink}
-                  className="invite-generate-link-btn"
-                >
-                  🔗 Generar link de invitación
-                </button>
+                <>
+                  <button
+                    type="button"
+                    onClick={handleGenerateLink}
+                    className="invite-generate-link-btn"
+                  >
+                    🔗 Generar link de invitación
+                  </button>
+                  <p className="invite-link-description">
+                    <strong>Por defecto, el link otorga permisos de "Editor".</strong>
+                  </p>
+                </>
               ) : (
                 <div className="invite-link-result">
                   <div className="invite-link-display">
@@ -215,7 +217,7 @@ const InviteMembersModal = ({ isOpen, onClose, onSave }) => {
                     </button>
                   </div>
                   <p className="invite-link-hint">
-                    Compartí este link con tu equipo. Podrán unirse directamente.
+                    Compartí este link con tu equipo. Podrán unirse directamente con permisos de Editor.
                   </p>
                 </div>
               )}
@@ -245,4 +247,3 @@ const InviteMembersModal = ({ isOpen, onClose, onSave }) => {
 }
 
 export default InviteMembersModal
-

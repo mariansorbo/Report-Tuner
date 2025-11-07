@@ -1,404 +1,279 @@
-# Empower Reports - Database Schema
+# Empower Reports - Database Schema (Simplificado)
 
-Esquema completo de base de datos para el sistema SaaS Empower Reports, diseñado para manejar usuarios, organizaciones, suscripciones, planes y reportes.
+Esquema simplificado y modular para el sistema SaaS Empower Reports.
 
-## 📋 Contenido
+## 📋 Archivos SQL
 
-- **schema.sql** - Esquema principal con todas las tablas, relaciones, índices y datos iniciales
-- **useful_queries.sql** - Consultas útiles y procedimientos almacenados para operaciones comunes
-- **state_machine_and_workflows.sql** - Procedimientos para máquina de estados de suscripciones y validación de límites
-- **organization_workflows.sql** - Procedimientos y funciones para el flujo UX completo de creación y unión a organizaciones
+### **Instalación** (en este orden)
 
-## 🚀 Instalación
+1. **`schema.sql`** ⭐ - Schema principal con tablas, vistas, funciones básicas y triggers de updated_at
+2. **`organization_workflows.sql`** - Procedures y funciones para creación/unión a organizaciones
+3. **`state_machine_and_workflows.sql`** - Máquina de estados de suscripciones
+4. **`constraints_and_validations.sql`** - Validaciones adicionales
+5. **`documentation_procedures.sql`** - Procedures para gestionar documentación
+6. **`enterprise_pro_plan_v2.sql`** - Enterprise Pro multi-organización (opcional)
+7. **`useful_queries.sql`** - Procedures útiles (opcional)
 
-### Prerrequisitos
+### **Solo consulta** (no ejecutar)
 
-- SQL Server 2017 o superior
-- Permisos para crear base de datos y tablas
+- **`tables_only.sql`** - Solo definiciones de tablas (para referencia)
 
-### Pasos de Instalación
+---
 
-1. **Ejecutar el esquema principal:**
-   ```sql
-   -- Conectarse a SQL Server Management Studio o Azure Data Studio
-   -- Ejecutar database/schema.sql
-   ```
+## 📚 Documentación
 
-2. **Verificar la instalación:**
-   ```sql
-   USE empower_reports;
-   GO
-   
-   -- Verificar que las tablas fueron creadas
-   SELECT TABLE_NAME 
-   FROM INFORMATION_SCHEMA.TABLES 
-   WHERE TABLE_TYPE = 'BASE TABLE';
-   
-   -- Verificar que los planes fueron insertados
-   SELECT * FROM plans;
-   ```
+### **Guías Principales**
+- **`README.md`** - Este archivo
+- **`INSTALLATION_ORDER.md`** - Orden de ejecución paso a paso
+- **`FLUJOS_COMPLETOS.md`** 🎯 - **Flujos del sistema con referencias a triggers/procedures/funciones**
+- **`ARCHITECTURE_SIMPLE.md`** - Filosofía del diseño simplificado
+- **`TRIGGERS_PROCEDURES_FUNCTIONS.md`** - Lista completa organizada por tabla
 
-## 📊 Estructura de Tablas
+### **Guías Específicas**
+- **`ENTERPRISE_PRO_V2_README.md`** - Documentación de Enterprise Pro
+- **`DIAGRAM_PROMPT.md`** - Para generar diagrama UML/ER
+- **`SAAS_TOOLS_AND_SYSTEMS.md`** - Herramientas externas (HubSpot, Stripe, etc.)
+- **`SCHEMA_OVERVIEW.md`** - Resumen de cambios y simplificación
 
-### Tablas Principales
+### **Excel**
+- **`DATABASE_SIMPLE.xlsx`** 📊 - Todas las tablas con datos dummy relacionados (27 registros)
 
-#### `users`
-- Almacena información de usuarios con soporte para OAuth (Google, LinkedIn, Azure AD)
-- Campos clave: `id`, `email`, `auth_provider`, `auth_provider_id`
+---
 
-#### `organizations`
-- Representa organizaciones donde colaboran usuarios
-- Vinculado a Stripe mediante `stripe_customer_id`
+## 🚀 Quick Start
 
-#### `organization_members`
-- Relación muchos-a-muchos entre usuarios y organizaciones
-- Incluye roles: `admin`, `member`, `viewer`
-- Un usuario puede tener múltiples organizaciones pero solo una primaria
+### Instalación Completa
 
-#### `plans`
-- Define los planes disponibles con sus límites y características
-- Planes predefinidos: `free_trial`, `basic`, `teams`, `enterprise`
+```sql
+-- 1. Schema base (OBLIGATORIO)
+USE master;
+GO
+-- Ejecutar schema.sql
 
-#### `subscriptions`
-- Suscripciones activas de organizaciones a planes
-- Estados: `active`, `trialing`, `canceled`, `past_due`, `unpaid`, `incomplete`
-- Una organización solo puede tener una suscripción activa/trialing
+-- 2. Workflows (OBLIGATORIO)
+USE empower_reports;
+GO
+-- Ejecutar organization_workflows.sql
+-- Ejecutar state_machine_and_workflows.sql
+-- Ejecutar constraints_and_validations.sql
 
-#### `subscription_history`
-- Historial completo de cambios en suscripciones
-- Rastrea upgrades, downgrades y eventos de Stripe
-
-#### `reports`
-- Reportes (.pbit) subidos por usuarios
-- Vinculados a organización (si aplica) y usuario
-
-## 🔑 Relaciones Principales
-
+-- 3. Enterprise Pro (OPCIONAL - solo si necesitas multi-org)
+-- Ejecutar enterprise_pro_plan_v2.sql
 ```
-users (1) ────< organization_members >─── (N) organizations
-                                            │
-organizations (1) ────< subscriptions >─── (1) plans
-                                            │
-organizations (1) ────< reports >──────── (N) reports
+
+### Instalación Mínima (Solo lo esencial)
+
+```sql
+-- Solo estos 4 archivos
+1. schema.sql
+2. organization_workflows.sql
+3. state_machine_and_workflows.sql
+4. constraints_and_validations.sql
 ```
+
+---
+
+## 📊 Contenido de Cada Archivo
+
+| Archivo | Tablas | Triggers | Procedures | Funciones | Vistas |
+|---------|--------|----------|------------|-----------|--------|
+| **schema.sql** | 8 | 7 | 0 | 3 | 2 |
+| **documentation_procedures.sql** | 0 | 0 | 3 | 0 | 0 |
+| **organization_workflows.sql** | 0 | 2 | 6 | 3 | 1 |
+| **state_machine_and_workflows.sql** | 0 | 4 | 8 | 0 | 2 |
+| **constraints_and_validations.sql** | 0 | 2 | 0 | 3 | 0 |
+| **enterprise_pro_plan_v2.sql** | 1 | 1 | 1 | 5 | 2 |
+| **useful_queries.sql** | 0 | 0 | 2 | 0 | 0 |
+| **TOTAL** | **9** | **15** | **20** | **13** | **7** |
+
+---
+
+## 📋 Estructura de Tablas
+
+### Tablas Principales (8)
+
+1. **`plans`** - Planes con límites (free_trial, basic, teams, enterprise, enterprise_pro)
+2. **`users`** - Usuarios con OAuth (Google, LinkedIn, Azure AD) y auth local
+3. **`organizations`** - Organizaciones donde colaboran usuarios
+4. **`organization_documentation`** - URLs de documentación por organización (habilita botón "Ver documentación")
+5. **`organization_members`** - Relación usuarios ↔ organizaciones con roles
+6. **`subscriptions`** - Suscripciones activas (integración con Stripe)
+7. **`subscription_history`** - Historial de cambios
+8. **`reports`** - Reportes subidos (pueden ser de org o individuales)
+
+### Tabla Enterprise Pro (1)
+
+9. **`enterprise_pro_managed_organizations`** - Organizaciones gestionadas por Enterprise Pro
+
+---
+
+## 🎯 Elementos Principales
+
+### Triggers (15)
+
+**Actualización automática (6)**
+- `trg_users_updated_at`
+- `trg_organizations_updated_at`
+- `trg_plans_updated_at`
+- `trg_subscriptions_updated_at`
+- `trg_org_members_updated_at`
+- `trg_reports_updated_at`
+
+**Validación de límites (2)**
+- `trg_organization_members_check_user_limit`
+- `trg_reports_check_report_limit`
+
+**Validación de business logic (4)**
+- `trg_validate_single_primary_organization`
+- `trg_validate_billing_cycle_by_plan`
+- `trg_organization_auto_assign_free_trial`
+- `trg_organization_archive_members`
+
+**Validaciones específicas (3)**
+- `trg_reports_validate_organization_for_user`
+- `trg_subscriptions_check_expiry`
+- `trg_ep_managed_check_limit` (Enterprise Pro)
+
+### Stored Procedures (17)
+
+**Organizaciones (6)**
+- `sp_create_organization_with_user`
+- `sp_join_organization_by_invitation`
+- `sp_archive_and_join_organization`
+- `sp_keep_both_set_new_primary`
+- `sp_change_primary_organization`
+- `sp_reactivate_organization`
+
+**Invitaciones (1)**
+- `sp_create_invitation_token`
+
+**Suscripciones (8)**
+- `sp_subscription_activate`
+- `sp_subscription_cancel`
+- `sp_subscription_mark_past_due`
+- `sp_subscription_resolve_past_due`
+- `sp_subscription_finalize_cancellation`
+- `sp_update_subscription_plan`
+- `sp_change_plan`
+- `sp_archive_organization`
+
+**Usuarios (1)**
+- `sp_create_user`
+
+**Enterprise Pro (1)**
+- `sp_create_managed_organization`
+
+### Funciones (13)
+
+**Validación de límites (2)**
+- `fn_can_add_user(@organization_id)` - ¿Puede agregar usuarios?
+- `fn_can_add_report(@organization_id)` - ¿Puede agregar reportes?
+
+**Organizaciones (3)**
+- `fn_can_user_create_organization(@user_id)` - ¿Puede crear org?
+- `fn_validate_invitation_token(@token)` - Validar token de invitación
+- `fn_get_user_organizations(@user_id)` - Obtener todas las orgs del usuario
+
+**Suscripciones (1)**
+- `fn_validate_billing_cycle_for_plan(@plan_id, @billing_cycle)` - Validar billing cycle
+
+**Reportes (2)**
+- `fn_can_user_create_individual_report(@user_id)` - ¿Puede crear reportes sin org?
+- `fn_get_user_effective_plan(@user_id)` - Plan efectivo del usuario
+
+**Enterprise Pro (5)**
+- `fn_can_manage_more_organizations(@org_id)` - ¿Puede gestionar más orgs?
+- `fn_get_managed_organizations_count(@org_id)` - Contar orgs gestionadas
+- `fn_is_enterprise_pro_admin(@user_id, @org_id)` - ¿Es admin_global?
+- `fn_get_user_managed_organizations(@user_id)` - Obtener orgs gestionadas
+- `fn_can_user_manage_organization(@user_id, @org_id)` - ¿Puede gestionar esta org?
+
+### Vistas (7)
+
+- `vw_organizations_with_subscription` - Orgs con suscripciones activas
+- `vw_users_with_primary_org` - Usuarios con org primaria
+- `vw_user_organizations_dashboard` - Vista completa para dashboard
+- `vw_organizations_usage_status` - Uso vs límites
+- `vw_subscriptions_requiring_attention` - Suscripciones que requieren atención
+- `vw_enterprise_pro_organizations` - Orgs Enterprise Pro (opcional)
+- `vw_managed_organizations` - Orgs gestionadas (opcional)
+
+---
 
 ## 📈 Planes y Límites
 
-### Free Trial (Actual)
-- **Max usuarios:** 10
-- **Max reportes:** 100
-- **Max almacenamiento:** 5GB
-- **Precio:** Gratis
+| Plan | Usuarios | Reportes | Storage | Precio/mes | Multi-Org |
+|------|----------|----------|---------|------------|-----------|
+| Free Trial | 10 | 100 | 5GB | Gratis | - |
+| Basic | 1 | 30 | 1GB | $9.99 | - |
+| Teams | 3 | 50 | 5GB | $29.99 | - |
+| Enterprise | 10 | 300 | 50GB | $99.99 | - |
+| Enterprise Pro | 50 | 1000 | 200GB | $199.99 | ✅ Hasta 5 |
 
-### Basic (Futuro)
-- **Max usuarios:** 1
-- **Max reportes:** 30
-- **Max almacenamiento:** 1GB
-- **Características:** Individual
+---
 
-### Teams (Futuro)
-- **Max usuarios:** 3
-- **Max reportes:** 50
-- **Max almacenamiento:** 5GB
-- **Características:** Colaboración básica
+## 💡 Filosofía: Simple y Delegado
 
-### Enterprise (Futuro)
-- **Max usuarios:** 10
-- **Max reportes:** 300
-- **Max almacenamiento:** 50GB
-- **Características:** API access, branding, audit log, priority support
+**Lo que maneja la DB:**
+- ✅ Usuarios y autenticación
+- ✅ Organizaciones y membresías
+- ✅ Planes y suscripciones
+- ✅ Reportes y almacenamiento
+- ✅ Validaciones de límites
+- ✅ Historial de cambios
 
-## 🛠️ Funciones Útiles
+**Lo que se delega:**
+- ❌ A/B Testing → HubSpot
+- ❌ Pricing regional → Stripe + HubSpot
+- ❌ Email marketing → HubSpot
+- ❌ Analytics → HubSpot + Google Analytics
+- ❌ Segmentación → HubSpot
 
-### `fn_can_add_user(@organization_id)`
-Verifica si una organización puede agregar más usuarios según su plan.
-```sql
-SELECT dbo.fn_can_add_user('YOUR_ORG_ID');
--- Retorna 1 si puede, 0 si no puede
-```
+---
 
-### `fn_can_add_report(@organization_id)`
-Verifica si una organización puede agregar más reportes según su plan.
-```sql
-SELECT dbo.fn_can_add_report('YOUR_ORG_ID');
--- Retorna 1 si puede, 0 si no puede
-```
+## 🔍 Explorar el Sistema
 
-### `fn_can_user_create_organization(@user_id)`
-Verifica si un usuario puede crear una nueva organización y retorna info de organizaciones existentes.
-```sql
-SELECT * FROM fn_can_user_create_organization('YOUR_USER_ID');
-```
+### Para entender las tablas:
+- Abrir **`DATABASE_SIMPLE.xlsx`** con datos dummy
 
-### `fn_validate_invitation_token(@invitation_token)`
-Valida un token de invitación y retorna información de la organización.
-```sql
-SELECT * FROM fn_validate_invitation_token('ABC-123-XYZ');
--- Retorna: is_valid, organization_id, organization_name, admin_name, member_count, etc.
-```
+### Para entender los flujos:
+- Leer **`FLUJOS_COMPLETOS.md`**
 
-### `fn_get_user_organizations(@user_id)`
-Obtiene todas las organizaciones de un usuario con su estado completo.
-```sql
-SELECT * FROM fn_get_user_organizations('YOUR_USER_ID')
-ORDER BY is_primary DESC, is_archived;
-```
+### Para ver qué hace cada trigger/procedure/función:
+- Leer **`TRIGGERS_PROCEDURES_FUNCTIONS.md`**
 
-## 👁️ Vistas Útiles
+### Para instalar:
+- Seguir **`INSTALLATION_ORDER.md`**
 
-### `vw_organizations_with_subscription`
-Organizaciones con información de suscripción activa, límites y conteos actuales.
-```sql
-SELECT * FROM vw_organizations_with_subscription;
-```
+### Para entender la arquitectura:
+- Leer **`ARCHITECTURE_SIMPLE.md`**
 
-### `vw_users_with_primary_org`
-Usuarios con su organización principal.
-```sql
-SELECT * FROM vw_users_with_primary_org;
-```
+---
 
-### `vw_organizations_usage_status`
-Estado de uso de todas las organizaciones con límites alcanzados.
-```sql
-SELECT * FROM vw_organizations_usage_status
-WHERE users_limit_reached = 1 OR reports_limit_reached = 1;
-```
+## 📝 Notas Importantes
 
-### `vw_subscriptions_requiring_attention`
-Suscripciones que requieren atención (vencimientos próximos, pagos pendientes).
-```sql
-SELECT * FROM vw_subscriptions_requiring_attention;
-```
+1. **organization_id en reports puede ser NULL** - Para usuarios individuales (plan basic)
+2. **billing_cycle en subscriptions puede ser NULL** - Solo para free_trial
+3. **admin_global es un rol especial** - Solo en Enterprise Pro para gestionar múltiples orgs
+4. **No hay jerarquía padre/hijo** - Las organizaciones son independientes
+5. **Triggers automáticos** - Free trial se asigna automáticamente al crear org
+6. **Validación en tiempo real** - Triggers bloquean si se exceden límites
 
-### `vw_user_organizations_dashboard`
-Dashboard completo de organizaciones del usuario para la UI.
-```sql
-SELECT * FROM vw_user_organizations_dashboard
-WHERE user_id = 'YOUR_USER_ID'
-ORDER BY is_primary DESC, organization_name;
-```
+---
 
-## 🔄 Procedimientos Almacenados
+## 🎓 Flujos Clave
 
-### Flujo UX de Organizaciones
+Ver **`FLUJOS_COMPLETOS.md`** para:
+- Flujo feliz completo paso a paso
+- Flujos alternativos (archivar, mantener ambas, etc.)
+- Flujos de error/recuperación (past_due, cancelación)
+- Tabla resumen de elementos por flujo
+- Diagramas de máquina de estados
 
-#### `sp_create_organization_with_user`
-Crea una nueva organización, asigna plan free_trial automáticamente y establece al usuario como admin.
-```sql
-EXEC sp_create_organization_with_user
-    @user_id = 'YOUR_USER_ID',
-    @organization_name = 'Mi Nueva Organización',
-    @make_primary = 1; -- Hacerla organización primaria
-```
+---
 
-#### `sp_join_organization_by_invitation`
-Unirse a organización usando código de invitación. Retorna si el usuario tiene organización existente.
-```sql
-EXEC sp_join_organization_by_invitation
-    @user_id = 'YOUR_USER_ID',
-    @invitation_token = 'ABC-123-XYZ',
-    @accept_invitation = 1;
-```
+## 📚 Más Información
 
-#### `sp_archive_and_join_organization`
-Archiva la organización actual del usuario y establece la nueva como primaria.
-```sql
-EXEC sp_archive_and_join_organization
-    @user_id = 'YOUR_USER_ID',
-    @old_organization_id = 'OLD_ORG_ID',
-    @new_organization_id = 'NEW_ORG_ID';
-```
-
-#### `sp_keep_both_set_new_primary`
-Mantiene ambas organizaciones pero establece la nueva como primaria.
-```sql
-EXEC sp_keep_both_set_new_primary
-    @user_id = 'YOUR_USER_ID',
-    @new_organization_id = 'NEW_ORG_ID';
-```
-
-#### `sp_change_primary_organization`
-Cambia la organización primaria del usuario (para el selector de organización).
-```sql
-EXEC sp_change_primary_organization
-    @user_id = 'YOUR_USER_ID',
-    @new_primary_org_id = 'NEW_PRIMARY_ORG_ID';
-```
-
-#### `sp_reactivate_organization`
-Reactivar una organización archivada.
-```sql
-EXEC sp_reactivate_organization
-    @user_id = 'YOUR_USER_ID',
-    @organization_id = 'ORG_ID';
-```
-
-#### `sp_create_invitation_token`
-Crear código de invitación para una organización.
-```sql
-EXEC sp_create_invitation_token
-    @organization_id = 'ORG_ID',
-    @invited_by = 'ADMIN_USER_ID',
-    @email = 'invitado@example.com',
-    @expires_in_days = 7;
-```
-
-### Gestión de Suscripciones
-
-#### `sp_archive_organization`
-Archiva una organización y cancela su suscripción.
-```sql
-EXEC sp_archive_organization 
-    @organization_id = 'YOUR_ORG_ID',
-    @archived_by = 'YOUR_USER_ID';
-```
-
-#### `sp_change_plan`
-Cambia el plan de una organización y registra el cambio en el historial.
-```sql
-EXEC sp_change_plan
-    @organization_id = 'YOUR_ORG_ID',
-    @new_plan_id = 'enterprise',
-    @changed_by = 'YOUR_USER_ID',
-    @billing_cycle = 'monthly';
-```
-
-#### `sp_subscription_activate`
-Transición: Trialing → Active (después de checkout exitoso).
-```sql
-EXEC sp_subscription_activate
-    @subscription_id = 'SUB_ID',
-    @stripe_subscription_id = 'sub_xxx',
-    @stripe_price_id = 'price_xxx';
-```
-
-#### `sp_subscription_cancel`
-Transición: Active → Canceled.
-```sql
-EXEC sp_subscription_cancel
-    @subscription_id = 'SUB_ID',
-    @cancel_at_period_end = 1, -- Cancelar al final del período
-    @canceled_by = 'USER_ID';
-```
-
-#### `sp_subscription_mark_past_due`
-Transición: Active → PastDue (cuando falla el pago).
-```sql
-EXEC sp_subscription_mark_past_due
-    @subscription_id = 'SUB_ID',
-    @stripe_event_id = 'evt_xxx';
-```
-
-#### `sp_subscription_resolve_past_due`
-Transición: PastDue → Active (cuando se resuelve el pago).
-```sql
-EXEC sp_subscription_resolve_past_due
-    @subscription_id = 'SUB_ID',
-    @stripe_event_id = 'evt_xxx';
-```
-
-## 📝 Consultas Comunes
-
-Ver `useful_queries.sql` para ejemplos de:
-- Validación de límites
-- Consultas de suscripciones
-- Estadísticas de uso
-- Consultas de usuarios y organizaciones
-- Reportes y procesamiento
-
-## 🔐 Seguridad
-
-- Todas las contraseñas se almacenan como hashes (para auth local)
-- Los tokens de invitación tienen expiración
-- Los registros de auditoría están en `subscription_history`
-
-## 🔄 Triggers Automáticos
-
-Todos los triggers están configurados para actualizar automáticamente `updated_at` cuando se modifica un registro en:
-- `users`
-- `organizations`
-- `plans`
-- `subscriptions`
-- `organization_members`
-- `reports`
-
-## 📊 Integración con Stripe
-
-El esquema está preparado para integrarse con Stripe:
-
-- **Organizaciones:** `stripe_customer_id` para identificar clientes
-- **Suscripciones:** `stripe_subscription_id` y `stripe_price_id` para tracking
-- **Historial:** `stripe_event_id` para rastrear webhooks
-- **Planes:** `stripe_price_id_monthly` y `stripe_price_id_yearly`
-
-## 🚨 Validaciones Importantes
-
-1. **Una organización solo puede tener una suscripción activa** (constraint único)
-2. **Un usuario solo puede tener una organización primaria** (lógica de aplicación)
-3. **Los límites de usuarios y reportes deben validarse antes de insertar** (usar las funciones proporcionadas)
-
-## 📈 Escalabilidad
-
-El esquema incluye índices optimizados para:
-- Búsquedas por email de usuario
-- Consultas por organización
-- Filtrado por estado de suscripción
-- Búsquedas de reportes por organización y estado
-
-## 🔧 Mantenimiento
-
-### Limpiar reportes eliminados (soft delete)
-```sql
--- Los reportes con is_deleted = 1 se mantienen para auditoría
--- Si se necesita limpiar físicamente después de X días:
-DELETE FROM reports 
-WHERE is_deleted = 1 
-AND deleted_at < DATEADD(day, -90, GETUTCDATE());
-```
-
-### Limpiar historial antiguo
-```sql
--- Mantener solo últimos 2 años de historial
-DELETE FROM subscription_history
-WHERE created_at < DATEADD(year, -2, GETUTCDATE());
-```
-
-## 📚 Referencias
-
-- Los tipos JSON requieren SQL Server 2016+
-- UUID se maneja como `UNIQUEIDENTIFIER` en SQL Server
-- Los campos de fecha usan `DATETIME2` para mejor precisión
-
-## ⚠️ Notas Importantes
-
-1. **Azure Blob Storage:** Los archivos físicos se almacenan en Azure, solo se guarda la referencia en `reports.file_url` y `reports.blob_name`
-
-2. **Soft Delete:** Tanto `organizations` como `reports` usan soft delete (`is_archived`, `is_deleted`) para mantener integridad referencial
-
-3. **Billing Cycle:** Actualmente se soporta `monthly` y `yearly`, pero el esquema es extensible
-
-4. **Free Trial:** Durante el período actual, todas las organizaciones están en `free_trial`, pero el esquema soporta la transición a planes pagos
-
-## 🐛 Troubleshooting
-
-### Error al crear suscripción
-Verificar que no exista otra suscripción activa para la organización:
-```sql
-SELECT * FROM subscriptions 
-WHERE organization_id = 'YOUR_ORG_ID' 
-AND status IN ('active', 'trialing');
-```
-
-### Usuario no puede agregarse a organización
-Verificar límites del plan:
-```sql
-SELECT dbo.fn_can_add_user('YOUR_ORG_ID');
-```
-
-### Reporte no se puede subir
-Verificar límites del plan:
-```sql
-SELECT dbo.fn_can_add_report('YOUR_ORG_ID');
-```
-
+- **Enterprise Pro**: Ver `ENTERPRISE_PRO_V2_README.md`
+- **Herramientas SaaS**: Ver `SAAS_TOOLS_AND_SYSTEMS.md`
+- **Diagrama UML**: Ver `DIAGRAM_PROMPT.md`

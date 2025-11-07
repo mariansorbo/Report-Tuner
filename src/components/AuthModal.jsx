@@ -5,7 +5,7 @@ import './AuthModal.css'
 
 const AuthModal = ({ isOpen, onClose, onAuthSuccess }) => {
   const [step, setStep] = useState('auth') // 'auth', 'org-setup', 'create-org', 'join-org', 'join-confirm'
-  const [isLogin, setIsLogin] = useState(true)
+  const [authMode, setAuthMode] = useState('login') // Cambio de isLogin a authMode
   const [formData, setFormData] = useState({
     email: '',
     password: '',
@@ -19,8 +19,66 @@ const AuthModal = ({ isOpen, onClose, onAuthSuccess }) => {
   
   const { login, register, loading, isAuthenticated } = useAuth()
   const { createOrganization, joinOrganization, archiveAndJoin, keepBothOrganizations, needsSetup, loading: orgLoading } = useOrganization()
+  
+  // Handler for LinkedIn OAuth (simulated - automatic login)
+  const handleLinkedInLogin = async () => {
+    setError('')
 
-  // Reset cuando se abre/cierra el modal
+    try {
+      // Generate unique email based on timestamp to simulate different users
+      const timestamp = Date.now()
+      const linkedInUserData = {
+        email: `user${timestamp}@linkedin.com`,
+        name: `User ${timestamp}`,
+        provider: 'linkedin'
+      }
+      
+      // Simulated automatic login
+      const result = await register(
+        linkedInUserData.email,
+        'linkedin_auto',
+        'linkedin_auto'
+      )
+
+      if (!result.success) {
+        setError(result.error || 'Error authenticating with LinkedIn')
+      }
+      // useEffect will handle transition to org-setup if needed
+    } catch (err) {
+      setError('Error connecting with LinkedIn')
+    }
+  }
+
+  // Handler for Azure AD OAuth (simulated - automatic login)
+  const handleAzureADLogin = async () => {
+    setError('')
+
+    try {
+      // Generate unique email based on timestamp to simulate different users
+      const timestamp = Date.now()
+      const azureUserData = {
+        email: `user${timestamp}@company.com`,
+        name: `Corporate User ${timestamp}`,
+        provider: 'azure_ad'
+      }
+      
+      // Simulated automatic login
+      const result = await register(
+        azureUserData.email,
+        'azure_auto',
+        'azure_auto'
+      )
+
+      if (!result.success) {
+        setError(result.error || 'Error authenticating with Azure AD')
+      }
+      // useEffect will handle transition to org-setup if needed
+    } catch (err) {
+      setError('Error connecting with Azure AD')
+    }
+  }
+
+  // Reset when opening/closing the modal
   useEffect(() => {
     if (isOpen) {
       setStep('auth')
@@ -33,12 +91,12 @@ const AuthModal = ({ isOpen, onClose, onAuthSuccess }) => {
     }
   }, [isOpen])
 
-  // Si está autenticado y necesita setup, mostrar opciones de organización
+  // If authenticated and needs setup, show organization options
   useEffect(() => {
     if (isAuthenticated && needsSetup && !orgLoading && step === 'auth') {
       setStep('org-setup')
     }
-    // Si no está autenticado, siempre mostrar paso de auth
+    // If not authenticated, always show auth step
     if (!isAuthenticated && step !== 'auth') {
       setStep('auth')
     }
@@ -67,7 +125,7 @@ const AuthModal = ({ isOpen, onClose, onAuthSuccess }) => {
       }
 
       if (result.success) {
-        setSuccess(isLogin ? '¡Inicio de sesión exitoso!' : '¡Cuenta creada exitosamente!')
+        setSuccess(authMode === 'login' ? '¡Inicio de sesión exitoso!' : '¡Cuenta creada exitosamente!')
         // No cerrar el modal, esperar a que el useEffect detecte needsSetup
       } else {
         setError(result.error)
@@ -81,20 +139,20 @@ const AuthModal = ({ isOpen, onClose, onAuthSuccess }) => {
     e.preventDefault()
     setError('')
 
-    // Validar autenticación
+    // Validate authentication
     if (!isAuthenticated) {
-      setError('Debes estar autenticado para crear una organización')
+      setError('You must be authenticated to create an organization')
       setStep('auth')
       return
     }
 
     if (!orgName.trim()) {
-      setError('El nombre de la organización es requerido')
+      setError('Organization name is required')
       return
     }
 
     if (orgName.trim().length < 3) {
-      setError('El nombre debe tener al menos 3 caracteres')
+      setError('Name must be at least 3 characters')
       return
     }
 
@@ -106,7 +164,7 @@ const AuthModal = ({ isOpen, onClose, onAuthSuccess }) => {
       }
       onClose()
     } else {
-      setError(result.error || 'Error al crear organización')
+      setError(result.error || 'Error creating organization')
     }
   }
 
@@ -161,7 +219,7 @@ const AuthModal = ({ isOpen, onClose, onAuthSuccess }) => {
   }
 
   const toggleMode = () => {
-    setIsLogin(!isLogin)
+    setAuthMode(authMode === 'login' ? 'register' : 'login')
     setError('')
     setSuccess('')
     setFormData({ email: '', password: '', confirmPassword: '' })
@@ -186,91 +244,74 @@ const AuthModal = ({ isOpen, onClose, onAuthSuccess }) => {
           </button>
           
           <div className="auth-modal-header">
-            <h2>{isLogin ? 'Iniciar Sesión' : 'Crear Cuenta'}</h2>
+            <h2>Acceder a Empower Reports</h2>
             <p className="auth-modal-subtitle">
-              {isLogin 
-                ? 'Ingresa tus credenciales para acceder' 
-                : 'Crea una cuenta para comenzar a usar Empower Reports'
-              }
+              Elegí tu método de autenticación preferido
             </p>
           </div>
 
-          <form onSubmit={handleAuthSubmit} className="auth-form">
-            <div className="form-group">
-              <label htmlFor="email">Email</label>
-              <input
-                type="email"
-                id="email"
-                name="email"
-                value={formData.email}
-                onChange={handleInputChange}
-                required
-                placeholder="tu@email.com"
-              />
+          <div className="auth-modal-content">
+            <div className="auth-options-container">
+              {error && (
+                <div className="auth-error">
+                  ❌ {error}
+                </div>
+              )}
+
+              <div className="auth-providers-row">
+                {/* LinkedIn Option */}
+                <div className="auth-option-card">
+                  <div className="auth-option-header">
+                    <div className="auth-provider-logo linkedin-logo-small">in</div>
+                    <h3>LinkedIn</h3>
+                  </div>
+                  <p className="auth-option-description">
+                    Accede con tu cuenta profesional de LinkedIn
+                  </p>
+                  <button 
+                    type="button"
+                    className="btn btn-linkedin full" 
+                    onClick={handleLinkedInLogin}
+                    disabled={loading}
+                  >
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+                      <path d="M19 3a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h14m-.5 15.5v-5.3a3.26 3.26 0 0 0-3.26-3.26c-.85 0-1.84.52-2.32 1.3v-1.11h-2.79v8.37h2.79v-4.93c0-.77.62-1.4 1.39-1.4a1.4 1.4 0 0 1 1.4 1.4v4.93h2.79M6.88 8.56a1.68 1.68 0 0 0 1.68-1.68c0-.93-.75-1.69-1.68-1.69a1.69 1.69 0 0 0-1.69 1.69c0 .93.76 1.68 1.69 1.68m1.39 9.94v-8.37H5.5v8.37h2.77z"/>
+                    </svg>
+                    {loading ? 'Conectando...' : 'Continuar con LinkedIn'}
+                  </button>
+                </div>
+
+                {/* Azure AD Option */}
+                <div className="auth-option-card">
+                  <div className="auth-option-header">
+                    <div className="auth-provider-logo azure-logo-small">
+                      <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
+                        <path d="M0 0h11.377v11.372H0zm12.623 0H24v11.372H12.623zM0 12.623h11.377V24H0zm12.623 0H24V24H12.623z"/>
+                      </svg>
+                    </div>
+                    <h3>Cuenta Empresarial</h3>
+                  </div>
+                  <p className="auth-option-description">
+                    Accede con tu cuenta corporativa de Microsoft
+                  </p>
+                  <button 
+                    type="button"
+                    className="btn btn-azure full" 
+                    onClick={handleAzureADLogin}
+                    disabled={loading}
+                  >
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+                      <path d="M0 0h11.377v11.372H0zm12.623 0H24v11.372H12.623zM0 12.623h11.377V24H0zm12.623 0H24V24H12.623z"/>
+                    </svg>
+                    {loading ? 'Conectando...' : 'Continuar con cuenta corporativa'}
+                  </button>
+                </div>
+              </div>
+
+              <div className="auth-privacy-notice">
+                <p>🔒 Tu información está protegida. Solo usamos estos métodos para autenticación segura.</p>
+              </div>
             </div>
-
-            <div className="form-group">
-              <label htmlFor="password">Contraseña</label>
-              <input
-                type="password"
-                id="password"
-                name="password"
-                value={formData.password}
-                onChange={handleInputChange}
-                required
-                placeholder="Mínimo 6 caracteres"
-                minLength="6"
-              />
-            </div>
-
-            {!isLogin && (
-              <div className="form-group">
-                <label htmlFor="confirmPassword">Confirmar Contraseña</label>
-                <input
-                  type="password"
-                  id="confirmPassword"
-                  name="confirmPassword"
-                  value={formData.confirmPassword}
-                  onChange={handleInputChange}
-                  required
-                  placeholder="Repite tu contraseña"
-                  minLength="6"
-                />
-              </div>
-            )}
-
-            {error && (
-              <div className="auth-error">
-                ❌ {error}
-              </div>
-            )}
-
-            {success && (
-              <div className="auth-success">
-                ✅ {success}
-              </div>
-            )}
-
-            <button 
-              type="submit" 
-              className="auth-submit-btn"
-              disabled={loading}
-            >
-              {loading ? 'Procesando...' : (isLogin ? 'Iniciar Sesión' : 'Crear Cuenta')}
-            </button>
-          </form>
-
-          <div className="auth-modal-footer">
-            <p>
-              {isLogin ? '¿No tienes cuenta?' : '¿Ya tienes cuenta?'}
-              <button 
-                type="button" 
-                className="auth-toggle-btn"
-                onClick={toggleMode}
-              >
-                {isLogin ? 'Crear cuenta' : 'Iniciar sesión'}
-              </button>
-            </p>
           </div>
         </div>
       </div>
@@ -299,9 +340,9 @@ const AuthModal = ({ isOpen, onClose, onAuthSuccess }) => {
           </button>
           
           <div className="auth-modal-header">
-            <h2>Bienvenido a Empower Reports</h2>
+            <h2>Welcome to Empower Reports</h2>
             <p className="auth-modal-subtitle">
-              Creá tu espacio de trabajo o unite al de tu equipo
+              Create your workspace or join your team's
             </p>
           </div>
 
@@ -312,8 +353,8 @@ const AuthModal = ({ isOpen, onClose, onAuthSuccess }) => {
             >
               <div className="org-setup-icon">➕</div>
               <div className="org-setup-content">
-                <h3>Crear nueva organización</h3>
-                <p>Empeza tu propio espacio de trabajo desde cero</p>
+                <h3>Create new organization</h3>
+                <p>Start your own workspace from scratch</p>
               </div>
             </button>
 
@@ -323,8 +364,8 @@ const AuthModal = ({ isOpen, onClose, onAuthSuccess }) => {
             >
               <div className="org-setup-icon">🔗</div>
               <div className="org-setup-content">
-                <h3>Unirme a una organización existente</h3>
-                <p>Tenés un código de invitación o link de invitación</p>
+                <h3>Join an existing organization</h3>
+                <p>You have an invitation code or invitation link</p>
               </div>
             </button>
           </div>
@@ -344,10 +385,22 @@ const AuthModal = ({ isOpen, onClose, onAuthSuccess }) => {
       <div className="auth-modal-overlay" onClick={onClose}>
         <div className="auth-modal" onClick={(e) => e.stopPropagation()}>
           <button 
-            className="auth-modal-close" 
+            className="auth-modal-back" 
             onClick={(e) => {
               e.stopPropagation()
               setStep('org-setup')
+            }}
+            type="button"
+            title="Volver"
+          >
+            ←
+          </button>
+          
+          <button 
+            className="auth-modal-close" 
+            onClick={(e) => {
+              e.stopPropagation()
+              onClose()
             }}
             type="button"
           >
@@ -355,15 +408,15 @@ const AuthModal = ({ isOpen, onClose, onAuthSuccess }) => {
           </button>
           
           <div className="auth-modal-header">
-            <h2>Crear Organización</h2>
+            <h2>Create Organization</h2>
             <p className="auth-modal-subtitle">
-              Empezá tu espacio de trabajo desde cero
+              Start your workspace from scratch
             </p>
           </div>
 
           <form onSubmit={handleCreateOrg} className="auth-form">
             <div className="form-group">
-              <label htmlFor="org-name">Nombre de la organización</label>
+              <label htmlFor="org-name">Organization name</label>
               <input
                 type="text"
                 id="org-name"
@@ -372,7 +425,7 @@ const AuthModal = ({ isOpen, onClose, onAuthSuccess }) => {
                   setOrgName(e.target.value)
                   setError('')
                 }}
-                placeholder="Ej: Mi Empresa"
+                placeholder="Ex: My Company"
                 required
                 minLength={3}
                 autoFocus
@@ -385,20 +438,13 @@ const AuthModal = ({ isOpen, onClose, onAuthSuccess }) => {
               </div>
             )}
 
-            <div className="auth-form-actions">
-              <button 
-                type="button"
-                className="auth-secondary-btn"
-                onClick={() => setStep('org-setup')}
-              >
-                ← Volver
-              </button>
+            <div className="auth-form-actions-center">
               <button 
                 type="submit" 
                 className="auth-submit-btn"
                 disabled={orgLoading || !orgName.trim()}
               >
-                {orgLoading ? 'Creando...' : 'Crear Organización'}
+                {orgLoading ? 'Creating...' : 'Create Organization'}
               </button>
             </div>
           </form>
@@ -418,10 +464,24 @@ const AuthModal = ({ isOpen, onClose, onAuthSuccess }) => {
       <div className="auth-modal-overlay" onClick={onClose}>
         <div className="auth-modal" onClick={(e) => e.stopPropagation()}>
           <button 
-            className="auth-modal-close" 
+            className="auth-modal-back" 
             onClick={(e) => {
               e.stopPropagation()
               setStep('org-setup')
+              setInvitationCode('')
+              setError('')
+            }}
+            type="button"
+            title="Volver"
+          >
+            ←
+          </button>
+          
+          <button 
+            className="auth-modal-close" 
+            onClick={(e) => {
+              e.stopPropagation()
+              onClose()
             }}
             type="button"
           >
@@ -429,15 +489,15 @@ const AuthModal = ({ isOpen, onClose, onAuthSuccess }) => {
           </button>
           
           <div className="auth-modal-header">
-            <h2>Unirme a una Organización</h2>
+            <h2>Join an Organization</h2>
             <p className="auth-modal-subtitle">
-              Ingresá el código de invitación que recibiste
+              Enter the invitation code you received
             </p>
           </div>
 
           <form onSubmit={handleJoinValidate} className="auth-form">
             <div className="form-group">
-              <label htmlFor="invitation-code">Código de invitación</label>
+              <label htmlFor="invitation-code">Invitation code</label>
               <input
                 type="text"
                 id="invitation-code"
@@ -446,12 +506,12 @@ const AuthModal = ({ isOpen, onClose, onAuthSuccess }) => {
                   setInvitationCode(e.target.value.toUpperCase())
                   setError('')
                 }}
-                placeholder="Ej: DATA-LATAM-2024"
+                placeholder="Ex: DATA-LATAM-2024"
                 required
                 autoFocus
               />
               <small className="input-hint">
-                También podés pegar un link de invitación completo
+                You can also paste a full invitation link
               </small>
             </div>
 
@@ -461,24 +521,13 @@ const AuthModal = ({ isOpen, onClose, onAuthSuccess }) => {
               </div>
             )}
 
-            <div className="auth-form-actions">
-              <button 
-                type="button"
-                className="auth-secondary-btn"
-                onClick={() => {
-                  setStep('org-setup')
-                  setInvitationCode('')
-                  setError('')
-                }}
-              >
-                ← Volver
-              </button>
+            <div className="auth-form-actions-center">
               <button 
                 type="submit" 
                 className="auth-submit-btn"
                 disabled={orgLoading || !invitationCode.trim()}
               >
-                {orgLoading ? 'Validando...' : 'Validar Código'}
+                {orgLoading ? 'Validating...' : 'Validate Code'}
               </button>
             </div>
           </form>
@@ -512,34 +561,34 @@ const AuthModal = ({ isOpen, onClose, onAuthSuccess }) => {
           </button>
           
           <div className="auth-modal-header">
-            <h2>Ya pertenecés a otra organización</h2>
+            <h2>You Already Belong to Another Organization</h2>
             <p className="auth-modal-subtitle">
-              Actualmente sos admin de la organización <strong>'{existingOrganization.name}'</strong>.
+              You are currently an admin of the organization <strong>'{existingOrganization.name}'</strong>.
               <br />
-              Si te unís a <strong>'{organization.name}'</strong>, podés archivar tu organización actual.
+              If you join <strong>'{organization.name}'</strong>, you can archive your current organization.
               <br />
               <span style={{ fontSize: '13px', color: '#999', fontStyle: 'italic' }}>
-                No se perderán tus reportes ni configuración.
+                Your reports and settings will not be lost.
               </span>
             </p>
           </div>
 
           <div className="join-confirmation-org-preview">
             <div className="org-preview-card org-preview-new">
-              <div className="org-preview-label">Nueva organización</div>
+              <div className="org-preview-label">New organization</div>
               <div className="org-preview-name">{organization.name}</div>
               {organization.admin && (
                 <div className="org-preview-detail">👤 Admin: {organization.admin}</div>
               )}
               {organization.members && (
-                <div className="org-preview-detail">👥 Miembros: {organization.members}</div>
+                <div className="org-preview-detail">👥 Members: {organization.members}</div>
               )}
             </div>
             
             <div className="org-preview-card org-preview-existing">
-              <div className="org-preview-label">Tu organización actual</div>
+              <div className="org-preview-label">Your current organization</div>
               <div className="org-preview-name">{existingOrganization.name}</div>
-              <div className="org-preview-detail">📊 Estado: Activa</div>
+              <div className="org-preview-detail">📊 Status: Active</div>
             </div>
           </div>
 
@@ -549,14 +598,14 @@ const AuthModal = ({ isOpen, onClose, onAuthSuccess }) => {
               onClick={() => handleJoinDecision('archive')}
               disabled={orgLoading}
             >
-              ✅ Unirme y archivar mi organización actual
+              ✅ Join and archive my current organization
             </button>
             <button
               className="auth-secondary-btn"
               onClick={() => handleJoinDecision('keep')}
               disabled={orgLoading}
             >
-              ⚙️ Mantener ambas organizaciones
+              ⚙️ Keep both organizations
             </button>
             <button
               className="auth-cancel-btn"
@@ -566,7 +615,7 @@ const AuthModal = ({ isOpen, onClose, onAuthSuccess }) => {
                 setInvitationCode('')
               }}
             >
-              Cancelar
+              Cancel
             </button>
           </div>
         </div>

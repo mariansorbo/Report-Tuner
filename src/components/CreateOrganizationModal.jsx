@@ -14,12 +14,12 @@ const CreateOrganizationModal = ({ isOpen, onClose, onSuccess }) => {
     setError('')
 
     if (!name.trim()) {
-      setError('El nombre de la organización es requerido')
+      setError('Organization name is required')
       return
     }
 
     if (name.trim().length < 3) {
-      setError('El nombre debe tener al menos 3 caracteres')
+      setError('Name must be at least 3 characters')
       return
     }
 
@@ -31,7 +31,7 @@ const CreateOrganizationModal = ({ isOpen, onClose, onSuccess }) => {
       }
       onClose()
     } else {
-      setError(result.error || 'Error al crear organización')
+      setError(result.error || 'Error creating organization')
     }
   }
 
@@ -43,15 +43,15 @@ const CreateOrganizationModal = ({ isOpen, onClose, onSuccess }) => {
         </button>
         
         <div className="create-org-modal-header">
-          <h2>Crear Organización</h2>
+          <h2>Create Organization</h2>
           <p className="create-org-modal-subtitle">
-            Empezá tu espacio de trabajo desde cero
+            Start your workspace from scratch
           </p>
         </div>
 
         <form onSubmit={handleSubmit} className="create-org-form">
           <div className="form-group">
-            <label htmlFor="org-name">Nombre de la organización</label>
+            <label htmlFor="org-name">Organization name</label>
             <input
               type="text"
               id="org-name"
@@ -60,7 +60,7 @@ const CreateOrganizationModal = ({ isOpen, onClose, onSuccess }) => {
                 setName(e.target.value)
                 setError('')
               }}
-              placeholder="Ej: Mi Empresa"
+              placeholder="Ex: My Company"
               required
               minLength={3}
               autoFocus
@@ -78,7 +78,7 @@ const CreateOrganizationModal = ({ isOpen, onClose, onSuccess }) => {
             className="create-org-submit-btn"
             disabled={loading || !name.trim()}
           >
-            {loading ? 'Creando...' : 'Crear Organización'}
+            {loading ? 'Creating...' : 'Create Organization'}
           </button>
         </form>
       </div>
@@ -87,4 +87,3 @@ const CreateOrganizationModal = ({ isOpen, onClose, onSuccess }) => {
 }
 
 export default CreateOrganizationModal
-
