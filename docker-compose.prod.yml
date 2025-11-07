@@ -6,13 +6,33 @@ services:
     container_name: empower-reports-app
     ports:
       - "80:80"
+      - "443:443"  # Para HTTPS si lo configuras más adelante
     restart: unless-stopped
     environment:
       - NODE_ENV=production
     volumes:
+      # Montar archivos de datos si es necesario (opcional)
       - ./data:/usr/share/nginx/html/data:ro
+      # Para logs persistentes (opcional)
+      - ./logs:/var/log/nginx
     networks:
       - empower-network
+    # Límites de recursos (ajusta según tu VPS)
+    deploy:
+      resources:
+        limits:
+          cpus: '1.0'
+          memory: 512M
+        reservations:
+          cpus: '0.5'
+          memory: 256M
+    # Health check
+    healthcheck:
+      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost/"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
 
 networks:
   empower-network:

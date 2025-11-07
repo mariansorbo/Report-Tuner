@@ -13,6 +13,20 @@ RUN npm ci
 # Copiar código fuente
 COPY . .
 
+# Variables de entorno de build para Vite (se pueden pasar con --build-arg)
+ARG VITE_AZURE_ACCOUNT_NAME
+ARG VITE_AZURE_SAS_TOKEN
+ARG VITE_CONTAINER_NAME
+ARG VITE_APP_NAME
+ARG VITE_MAX_FILE_SIZE
+
+# Establecer las variables de entorno para el build de Vite
+ENV VITE_AZURE_ACCOUNT_NAME=$VITE_AZURE_ACCOUNT_NAME
+ENV VITE_AZURE_SAS_TOKEN=$VITE_AZURE_SAS_TOKEN
+ENV VITE_CONTAINER_NAME=$VITE_CONTAINER_NAME
+ENV VITE_APP_NAME=$VITE_APP_NAME
+ENV VITE_MAX_FILE_SIZE=$VITE_MAX_FILE_SIZE
+
 # Construir la aplicación
 RUN npm run build
 
