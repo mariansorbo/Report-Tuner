@@ -1,12 +1,15 @@
 import React, { useState, useCallback } from 'react'
 import { BlobServiceClient } from '@azure/storage-blob'
 import { useAuth } from '../contexts/AuthContext'
+import { scanFiles, isVirusScanEnabled } from '../services/virusTotalService'
 import './FileUpload.css'
 
 const FileUpload = ({ compact = true, onAuthRequired }) => {
   const [files, setFiles] = useState([]) // File[]
   const [uploading, setUploading] = useState(false)
+  const [scanning, setScanning] = useState(false)
   const [progressByFile, setProgressByFile] = useState({}) // { filename: percent }
+  const [scanStatusByFile, setScanStatusByFile] = useState({}) // { filename: { stage, message } }
   const [message, setMessage] = useState('')
   const [error, setError] = useState('')
   const { isAuthenticated, user } = useAuth()
@@ -120,11 +123,64 @@ const FileUpload = ({ compact = true, onAuthRequired }) => {
     }
 
     setUploading(true)
+    setScanning(false)
     setError('')
     setMessage('')
     setProgressByFile({})
+    setScanStatusByFile({})
 
     const results = []
+    const virusScanEnabled = isVirusScanEnabled()
+
+    // Paso 1: Escanear archivos con VirusTotal (si está habilitado)
+    if (virusScanEnabled) {
+      setScanning(true)
+      try {
+        const scanResults = await scanFiles(files, (progress) => {
+          if (progress.fileName) {
+            setScanStatusByFile(prev => ({
+              ...prev,
+              [progress.fileName]: {
+                stage: progress.stage || 'scanning',
+                message: progress.message || 'Escaneando...',
+                fileIndex: progress.fileIndex,
+                totalFiles: progress.totalFiles
+              }
+            }))
+          }
+        })
+
+        // Verificar si algún archivo tiene amenazas
+        const infectedFiles = scanResults.filter(r => !r.clean && !r.skipped)
+        if (infectedFiles.length > 0) {
+          setScanning(false)
+          setUploading(false)
+          const infectedNames = infectedFiles.map(f => f.file).join(', ')
+          setError(`⚠️ Archivos con amenazas detectadas: ${infectedNames}. La subida ha sido bloqueada por seguridad.`)
+          return
+        }
+
+        // Verificar si hubo errores en el escaneo
+        const scanErrors = scanResults.filter(r => r.error && !r.skipped)
+        if (scanErrors.length > 0) {
+          setScanning(false)
+          setUploading(false)
+          const errorNames = scanErrors.map(f => f.file).join(', ')
+          setError(`Error al escanear archivos: ${errorNames}. La subida ha sido bloqueada por seguridad.`)
+          return
+        }
+
+        setMessage(`✅ Escaneo completado: todos los archivos están limpios`)
+      } catch (err) {
+        setScanning(false)
+        setUploading(false)
+        setError(`Error durante el escaneo: ${err.message}. La subida ha sido bloqueada por seguridad.`)
+        return
+      }
+      setScanning(false)
+    }
+
+    // Paso 2: Subir archivos a Azure
     for (const f of files) {
       try {
         const result = await uploadToAzure(f)
@@ -136,7 +192,7 @@ const FileUpload = ({ compact = true, onAuthRequired }) => {
 
     const failed = results.filter(r => !r.success)
     if (failed.length === 0) {
-      setMessage(`✅ ${results.length} file(s) uploaded successfully`)
+      setMessage(`✅ ${results.length} file(s) uploaded successfully${virusScanEnabled ? ' (escaneados y verificados)' : ''}`)
     } else {
       setError(`Some files failed: ${failed.map(f => f.file).join(', ')}`)
     }
@@ -204,7 +260,30 @@ const FileUpload = ({ compact = true, onAuthRequired }) => {
         </div>
       )}
 
-      {uploading && files.length > 0 && (
+      {scanning && files.length > 0 && (
+        <div className="scan-container">
+          <h4 className="scan-title">🔍 Escaneando archivos con VirusTotal...</h4>
+          {files.map(f => {
+            const scanStatus = scanStatusByFile[f.name] || { stage: 'pending', message: 'Esperando...' }
+            return (
+              <div key={f.name} className="scan-item">
+                <div className="scan-label">
+                  <span className="scan-file-name">{f.name}</span>
+                  <span className="scan-status">{scanStatus.message}</span>
+                </div>
+                <div className="scan-indicator">
+                  {scanStatus.stage === 'uploading' && <span className="scan-dot scanning">⏳</span>}
+                  {scanStatus.stage === 'analyzing' && <span className="scan-dot analyzing">🔍</span>}
+                  {scanStatus.stage === 'completed' && <span className="scan-dot completed">✓</span>}
+                  {scanStatus.stage === 'pending' && <span className="scan-dot pending">⏸</span>}
+                </div>
+              </div>
+            )
+          })}
+        </div>
+      )}
+
+      {uploading && !scanning && files.length > 0 && (
         <div className="progress-container">
           {files.map(f => {
             const p = progressByFile[f.name] || 0
@@ -236,13 +315,15 @@ const FileUpload = ({ compact = true, onAuthRequired }) => {
       <button 
         className="upload-button upload-button--primary"
         onClick={handleUpload}
-        disabled={!isAuthenticated || files.length === 0 || uploading}
+        disabled={!isAuthenticated || files.length === 0 || uploading || scanning}
       >
         {!isAuthenticated 
           ? 'Sign in to upload' 
-          : uploading 
-            ? 'Uploading...' 
-            : 'Upload File'
+          : scanning
+            ? 'Scanning...'
+            : uploading 
+              ? 'Uploading...' 
+              : 'Upload File'
         }
       </button>
       {!compact && (

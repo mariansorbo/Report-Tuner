@@ -21,8 +21,8 @@
 -- Si estás usando Azure SQL Database, la base de datos YA DEBE EXISTIR.
 -- COMENTA o ELIMINA las siguientes líneas antes de ejecutar este script:
 --   - USE master;
---   - CREATE DATABASE empower_reports;
---   - USE empower_reports;
+--   - CREATE DATABASE EmpowerBI;
+--   - USE EmpowerBI;
 --
 -- En su lugar, asegúrate de estar conectado a tu base de datos de Azure SQL
 -- y cambia el nombre de la base de datos en la línea USE si es necesario.
@@ -39,13 +39,13 @@ USE master;
 GO
 
 -- Crear base de datos si no existe (solo para SQL Server local/Docker)
-IF NOT EXISTS (SELECT * FROM sys.databases WHERE name = 'empower_reports')
+IF NOT EXISTS (SELECT * FROM sys.databases WHERE name = 'EmpowerBI')
 BEGIN
-    CREATE DATABASE empower_reports;
+    CREATE DATABASE EmpowerBI;
 END
 GO
 
-USE empower_reports;
+USE EmpowerBI;
 GO
 -- ============================================================================
 -- FIN DE CREACIÓN DE BASE DE DATOS

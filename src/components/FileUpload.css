@@ -187,3 +187,87 @@
   margin: 4px 0;
   font-size: 0.9rem;
 }
+
+/* Estilos para el escaneo de VirusTotal */
+.scan-container {
+  background: #f0f9ff;
+  border: 2px solid #0ea5e9;
+  border-radius: 8px;
+  padding: 16px;
+  margin: 20px 0;
+}
+
+.scan-title {
+  font-size: 1rem;
+  font-weight: 600;
+  color: #0369a1;
+  margin: 0 0 12px 0;
+  text-align: center;
+}
+
+.scan-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px;
+  background: #fff;
+  border: 1px solid #bae6fd;
+  border-radius: 6px;
+  margin-top: 8px;
+}
+
+.scan-label {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  gap: 4px;
+}
+
+.scan-file-name {
+  font-weight: 600;
+  color: #0c4a6e;
+  font-size: 0.9rem;
+}
+
+.scan-status {
+  font-size: 0.85rem;
+  color: #0284c7;
+  font-style: italic;
+}
+
+.scan-indicator {
+  margin-left: 12px;
+  font-size: 1.2rem;
+}
+
+.scan-dot {
+  display: inline-block;
+  animation: pulse 2s infinite;
+}
+
+.scan-dot.pending {
+  opacity: 0.5;
+  animation: none;
+}
+
+.scan-dot.scanning {
+  animation: pulse 1s infinite;
+}
+
+.scan-dot.analyzing {
+  animation: pulse 0.8s infinite;
+}
+
+.scan-dot.completed {
+  animation: none;
+  color: #10b981;
+}
+
+@keyframes pulse {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.5;
+  }
+}

@@ -10,6 +10,20 @@ yarn-error.log*
 .env.development.local
 .env.test.local
 .env.production.local
+.env.*
+!.env.example
+
+# Sensitive files
+db-setup/.env
+*.secret
+*credentials*
+*secrets*
+
+# Technical requirements with credentials (keep public version)
+TECHNICAL_REQUIREMENTS.md
+REQUIREMENTS.md
+# Public version is allowed
+!TECHNICAL_REQUIREMENTS_PUBLIC.md
 
 # Build outputs
 dist/
@@ -88,6 +102,11 @@ jspm_packages/
 
 # TernJS port file
 .tern-port
+
+
+
+
+
 
 
 

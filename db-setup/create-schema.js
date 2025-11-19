@@ -29,8 +29,15 @@ const config = {
 function splitSQLBatches(sqlContent) {
   return sqlContent
     .split(/\nGO\s*\n/gi)
-    .map(batch => batch.trim())
-    .filter(batch => batch.length > 0 && !batch.startsWith('USE master') && !batch.startsWith('USE empower_reports'));
+    .map(batch => {
+      // Eliminar líneas que contengan USE statements
+      return batch
+        .split('\n')
+        .filter(line => !line.trim().match(/^\s*USE\s+(master|empower_reports|EmpowerBI|EmpowerBI-DB)\s*;?\s*$/i))
+        .join('\n')
+        .trim();
+    })
+    .filter(batch => batch.length > 0);
 }
 
 async function executeSQLFile(pool, filePath, fileName) {
@@ -51,7 +58,9 @@ async function executeSQLFile(pool, filePath, fileName) {
       // Saltar ciertos comandos que no son compatibles o necesarios
       if (
         batch.includes('CREATE DATABASE') ||
-        batch.includes('IF NOT EXISTS (SELECT * FROM sys.databases')
+        batch.includes('IF NOT EXISTS (SELECT * FROM sys.databases') ||
+        batch.trim().match(/^\s*USE\s+/i) ||
+        batch.trim().length === 0
       ) {
         skippedCount++;
         continue;
@@ -62,12 +71,17 @@ async function executeSQLFile(pool, filePath, fileName) {
         executedCount++;
         process.stdout.write(`\r   Progreso: ${executedCount}/${batches.length - skippedCount} batches ejecutados`);
       } catch (err) {
-        // Ignorar errores de objetos que ya existen
+        // Ignorar errores de objetos que ya existen o no se pueden eliminar por foreign keys
         if (err.message.includes('already exists') || 
-            err.message.includes('There is already an object')) {
+            err.message.includes('There is already an object') ||
+            err.message.includes('referenced by a FOREIGN KEY constraint') ||
+            err.message.includes('Cannot drop the table') ||
+            err.message.includes('because it is referenced by')) {
           skippedCount++;
           continue;
         }
+        // Agregar información del batch al error para debugging
+        err.batch = batch;
         throw err;
       }
     }
@@ -77,6 +91,16 @@ async function executeSQLFile(pool, filePath, fileName) {
   } catch (err) {
     console.error(`\n   ❌ Error en ${fileName}:`);
     console.error(`      ${err.message}`);
+    if (err.number) {
+      console.error(`      Error Number: ${err.number}`);
+    }
+    if (err.lineNumber) {
+      console.error(`      Line Number: ${err.lineNumber}`);
+    }
+    // Mostrar el batch que causó el error si está disponible
+    if (err.batch) {
+      console.error(`      Problematic batch (first 200 chars): ${err.batch.substring(0, 200)}`);
+    }
     return { success: false, error: err.message };
   }
 }

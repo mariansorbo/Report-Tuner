@@ -1,70 +1,130 @@
 # Report Tuner
 
-Una aplicación web MVP para subir archivos .pbit a Azure Blob Storage.
+A web application for managing Power BI reports with enterprise-grade authentication and file management.
 
-## Características
+## 🚀 Features
 
-- ✅ Subida de archivos .pbit a Azure Blob Storage
-- ✅ Validación de tipo de archivo (.pbit únicamente)
-- ✅ Validación de tamaño (máximo 30MB)
-- ✅ Barra de progreso en tiempo real
-- ✅ Interfaz drag & drop
-- ✅ Mensajes de error y éxito claros
-- ✅ Diseño responsive y moderno
+- **Multi-Provider OAuth Authentication**: LinkedIn, Google Workspace, Azure AD, and Auth0
+- **Organization Management**: Create and manage teams with role-based access
+- **File Upload & Scanning**: Secure .pbit file uploads with VirusTotal integration
+- **Invitation System**: Invite team members to organizations
+- **Email Notifications**: Contact form and login notifications via EmailJS
 
-## Configuración
+## 📋 Tech Stack
 
-1. **Instalar dependencias:**
+### Frontend
+- **React 18.2.0** - UI library
+- **Vite 7.2.2** - Build tool and dev server
+- **React Context API** - State management
+- **CSS3** - Component-based styling
+
+### Backend (To be implemented)
+- **Node.js + Express** (recommended)
+- **Azure SQL Database** - Data persistence
+- **JWT** - Session management
+- **Passport.js** - OAuth authentication
+
+## 🛠️ Setup
+
+### Prerequisites
+- Node.js 18+ 
+- npm or yarn
+- Azure SQL Database access
+- OAuth credentials (LinkedIn, Google, Azure AD, Auth0)
+- EmailJS account
+- VirusTotal API key
+
+### Installation
+
+1. **Clone the repository**
+   ```bash
+   git clone <repository-url>
+   cd Empower-Reports
+   ```
+
+2. **Install dependencies**
    ```bash
    npm install
    ```
 
-2. **Configurar variables de entorno:**
-   - Copia `env.example` a `.env`
-   - Actualiza las credenciales de Azure Storage
+3. **Configure environment variables**
+   ```bash
+   cp env.example .env
+   # Edit .env with your actual credentials
+   ```
 
-3. **Ejecutar en desarrollo:**
+4. **Run development server**
    ```bash
    npm run dev
    ```
 
-4. **Construir para producción:**
+5. **Build for production**
    ```bash
    npm run build
    ```
 
-## Variables de Entorno
-
-```env
-VITE_AZURE_STORAGE_CONNECTION_STRING=tu_connection_string_aqui
-VITE_CONTAINER_NAME=pbits-in
-VITE_APP_NAME=Report Tuner
-VITE_MAX_FILE_SIZE=31457280
-```
-
-## Uso
-
-1. Abre la aplicación en tu navegador
-2. Arrastra un archivo .pbit o haz clic para seleccionarlo
-3. Haz clic en "Subir Archivo"
-4. Observa el progreso de carga
-5. Recibe confirmación de éxito
-
-## Tecnologías
-
-- React 18
-- Vite
-- Azure Blob Storage SDK
-- CSS3 con diseño moderno
-
-## Estructura del Proyecto
+## 📁 Project Structure
 
 ```
 src/
-├── components/
+├── components/          # React components
+│   ├── AuthModal.jsx
 │   ├── FileUpload.jsx
-│   └── FileUpload.css
-├── App.jsx
-├── App.css
-└── main.jsx
+│   └── ...
+├── contexts/           # React Context providers
+│   ├── AuthContext.jsx
+│   └── OrganizationContext.jsx
+├── hooks/              # Custom React hooks
+├── services/           # Service layer
+│   ├── emailService.js
+│   ├── virusTotalService.js
+│   └── ...
+└── App.jsx             # Main application
 ```
+
+## 🔐 Environment Variables
+
+See `env.example` for all required environment variables. Key variables include:
+
+- Database connection string
+- OAuth credentials (LinkedIn, Google, Azure AD, Auth0)
+- EmailJS configuration
+- JWT secret
+- VirusTotal API key
+- Azure Storage credentials
+
+**⚠️ Important**: Never commit `.env` files to version control.
+
+## 📚 Documentation
+
+- **Technical Requirements**: See `TECHNICAL_REQUIREMENTS_PUBLIC.md` for detailed implementation requirements
+- **Database Schema**: See `database/schema.sql` for database structure
+- **API Documentation**: To be added after backend implementation
+
+## 🐳 Docker Deployment
+
+The project includes Docker configuration for production deployment:
+
+```bash
+docker build -t empower-reports .
+docker run -p 80:80 empower-reports
+```
+
+## 🔒 Security
+
+- All sensitive credentials are stored in environment variables
+- JWT tokens for session management
+- VirusTotal scanning for uploaded files
+- HTTPS required in production
+
+## 📝 License
+
+[Your License Here]
+
+## 👥 Contributing
+
+[Contributing guidelines]
+
+## 📧 Contact
+
+[Contact information]
