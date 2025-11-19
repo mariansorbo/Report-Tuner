@@ -35,7 +35,7 @@
 -- ============================================================================
 -- COMENTAR ESTAS LÍNEAS SI USAS AZURE SQL DATABASE
 -- ============================================================================
-USE master;
+/*USE master;
 GO
 
 -- Crear base de datos si no existe (solo para SQL Server local/Docker)
@@ -46,7 +46,7 @@ END
 GO
 
 USE EmpowerBI;
-GO
+GO*/
 -- ============================================================================
 -- FIN DE CREACIÓN DE BASE DE DATOS
 -- ============================================================================
@@ -283,7 +283,6 @@ GO
 -- ============================================================================
 -- Historial de cambios de planes, upgrades, downgrades y eventos de Stripe
 -- ============================================================================
-
 IF OBJECT_ID('subscription_history', 'U') IS NOT NULL DROP TABLE subscription_history;
 GO
 
@@ -291,21 +290,37 @@ CREATE TABLE subscription_history (
     id UNIQUEIDENTIFIER PRIMARY KEY DEFAULT NEWID(),
     subscription_id UNIQUEIDENTIFIER NOT NULL,
     organization_id UNIQUEIDENTIFIER NOT NULL,
-    plan_id_old VARCHAR(50) NULL,
-    plan_id_new VARCHAR(50) NOT NULL,
+    plan_id_old VARCHAR(50) COLLATE DATABASE_DEFAULT NULL,
+    plan_id_new VARCHAR(50) COLLATE DATABASE_DEFAULT NOT NULL,
     status_old VARCHAR(50) NULL,
     status_new VARCHAR(50) NOT NULL,
-    event_type VARCHAR(50) NOT NULL CHECK (event_type IN ('created', 'updated', 'canceled', 'reactivated', 'plan_changed', 'billing_cycle_changed', 'stripe_webhook')),
-    stripe_event_id VARCHAR(255) NULL, -- ID del evento en Stripe para tracking
-    metadata JSON NULL, -- Información adicional del cambio
-    changed_by UNIQUEIDENTIFIER NULL, -- Usuario que hizo el cambio (NULL si fue por webhook)
+    event_type VARCHAR(50) NOT NULL CHECK (
+        event_type IN (
+            'created', 'updated', 'canceled', 'reactivated',
+            'plan_changed', 'billing_cycle_changed', 'stripe_webhook'
+        )
+    ),
+    stripe_event_id VARCHAR(255) NULL,
+    metadata NVARCHAR(MAX) NULL CHECK (ISJSON(metadata) = 1),
+    changed_by UNIQUEIDENTIFIER NULL,
     created_at DATETIME2 NOT NULL DEFAULT GETUTCDATE(),
-    
-    CONSTRAINT fk_sub_history_subscription FOREIGN KEY (subscription_id) REFERENCES subscriptions(id) ON DELETE CASCADE,
-    CONSTRAINT fk_sub_history_organization FOREIGN KEY (organization_id) REFERENCES organizations(id) ON DELETE CASCADE,
-    CONSTRAINT fk_sub_history_plan_new FOREIGN KEY (plan_id_new) REFERENCES plans(id),
-    CONSTRAINT fk_sub_history_plan_old FOREIGN KEY (plan_id_old) REFERENCES plans(id),
-    CONSTRAINT fk_sub_history_changed_by FOREIGN KEY (changed_by) REFERENCES users(id)
+
+    -- 🔥 ESTA SÍ DEBE SER CASCADE
+    CONSTRAINT fk_sub_history_subscription 
+        FOREIGN KEY (subscription_id) REFERENCES subscriptions(id) ON DELETE CASCADE,
+
+    -- ❌ ESTA NO PUEDE SER CASCADE
+    CONSTRAINT fk_sub_history_organization 
+        FOREIGN KEY (organization_id) REFERENCES organizations(id),
+
+    CONSTRAINT fk_sub_history_plan_new 
+        FOREIGN KEY (plan_id_new) REFERENCES plans(id),
+
+    CONSTRAINT fk_sub_history_plan_old 
+        FOREIGN KEY (plan_id_old) REFERENCES plans(id),
+
+    CONSTRAINT fk_sub_history_changed_by 
+        FOREIGN KEY (changed_by) REFERENCES users(id)
 );
 GO
 
@@ -435,55 +450,55 @@ VALUES
         1
     ),
     (
-        'basic',
-        'Basic',
-        'Plan individual para usuarios que trabajan solos',
+        'plan_a',
+        'A',
+        'Plan A',
         1, -- Solo 1 usuario
         30, -- Hasta 30 reportes
         1000, -- 1GB
         NULL, -- max_organizations: no aplica
         '{"api_access": false, "branding": false, "audit_log": false, "priority_support": false}',
-        9.99, -- Ejemplo de precio mensual
-        99.99, -- Ejemplo de precio anual
+        1.00,
+        10.00,
         1
     ),
     (
-        'teams',
-        'Teams',
-        'Plan colaborativo para equipos pequeños',
+        'plan_b',
+        'B',
+        'Plan B',
         3, -- Hasta 3 usuarios
         50, -- Hasta 50 reportes compartidos
         5000, -- 5GB
         NULL, -- max_organizations: no aplica
         '{"api_access": false, "branding": false, "audit_log": false, "priority_support": false}',
-        29.99,
-        299.99,
+        2.00,
+        20.00,
         1
     ),
     (
-        'enterprise',
-        'Enterprise',
-        'Plan completo para organizaciones grandes con todas las características',
+        'plan_c',
+        'C',
+        'Plan C',
         10, -- Hasta 10 usuarios
         300, -- Hasta 300 reportes
         50000, -- 50GB
         NULL, -- max_organizations: no aplica
         '{"api_access": true, "branding": true, "audit_log": true, "priority_support": true}',
-        99.99,
-        999.99,
+        3.00,
+        30.00,
         1
     ),
     (
-        'enterprise_pro',
-        'Enterprise Pro',
-        'Plan para empresas de consultoría que gestionan múltiples clientes. Permite crear y gestionar hasta 5 organizaciones separadas con metadata confidencial.',
+        'plan_d',
+        'D',
+        'Plan D',
         50, -- Hasta 50 usuarios (cubrir múltiples equipos)
         1000, -- Hasta 1000 reportes (múltiples clientes)
         200000, -- 200GB de almacenamiento
         5, -- Máximo 5 organizaciones gestionadas
         '{"api_access": true, "branding": true, "audit_log": true, "priority_support": true, "multi_organization": true, "organization_isolation": true, "advanced_user_management": true, "global_admin_role": true}',
-        199.99,
-        1999.99,
+        4.00,
+        40.00,
         1
     );
 GO

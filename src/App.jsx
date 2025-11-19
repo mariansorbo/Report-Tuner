@@ -348,102 +348,81 @@ const AppContent = () => {
           <p className="plans-subtitle">Elige el plan que mejor se adapte a tus necesidades</p>
           
           <div className="plans-content">
-            {/* Pro Plan */}
+            {/* Free Trial Plan */}
             <div className="plan-card">
               <div className="plan-header">
-                <div className="plan-icon">⭐</div>
-                <h3 className="plan-name">Pro</h3>
+                <div className="plan-icon">🆓</div>
+                <h3 className="plan-name">Free Trial</h3>
                 <div className="plan-price">
-                  <span className="price-currency">$</span>
-                  <span className="price-amount">29</span>
-                  <span className="price-period">/mes</span>
+                  <span className="price-amount">Gratis</span>
                 </div>
               </div>
-              <div className="plan-features">
-                <ul>
-                  <li>✓ Hasta 3 usuarios</li>
-                  <li>✓ Hasta 50 reportes</li>
-                  <li>✓ Documentación completa</li>
-                  <li>✓ Soporte prioritario</li>
-                </ul>
-              </div>
               <button className="btn-upgrade" onClick={handleAuthClick}>
-                Elegir Pro
+                Elegir Free Trial
               </button>
             </div>
 
-            {/* Teams Plan - Featured */}
-            <div className="plan-card plan-featured">
-              <div className="plan-badge">Más Popular</div>
+            {/* Plan A */}
+            <div className="plan-card">
               <div className="plan-header">
-                <div className="plan-icon">👥</div>
-                <h3 className="plan-name">Teams</h3>
+                <div className="plan-icon">A</div>
+                <h3 className="plan-name">A</h3>
                 <div className="plan-price">
                   <span className="price-currency">$</span>
-                  <span className="price-amount">99</span>
+                  <span className="price-amount">1</span>
                   <span className="price-period">/mes</span>
                 </div>
               </div>
-              <div className="plan-features">
-                <ul>
-                  <li>✓ Hasta 10 usuarios</li>
-                  <li>✓ Hasta 300 reportes</li>
-                  <li>✓ Documentación avanzada</li>
-                  <li>✓ Integración Power BI</li>
-                  <li>✓ Soporte 24/7</li>
-                </ul>
-              </div>
-              <button className="btn-upgrade btn-upgrade-featured" onClick={handleAuthClick}>
-                Elegir Teams
+              <button className="btn-upgrade" onClick={handleAuthClick}>
+                Elegir A
               </button>
             </div>
 
-            {/* Enterprise Plan */}
+            {/* Plan B */}
             <div className="plan-card">
               <div className="plan-header">
-                <div className="plan-icon">🏢</div>
-                <h3 className="plan-name">Enterprise</h3>
+                <div className="plan-icon">B</div>
+                <h3 className="plan-name">B</h3>
                 <div className="plan-price">
                   <span className="price-currency">$</span>
-                  <span className="price-amount">199</span>
+                  <span className="price-amount">2</span>
                   <span className="price-period">/mes</span>
                 </div>
               </div>
-              <div className="plan-features">
-                <ul>
-                  <li>✓ Hasta 50 usuarios</li>
-                  <li>✓ Reportes ilimitados</li>
-                  <li>✓ API Access</li>
-                  <li>✓ SSO & Security</li>
-                  <li>✓ Account Manager</li>
-                </ul>
-              </div>
               <button className="btn-upgrade" onClick={handleAuthClick}>
-                Elegir Enterprise
+                Elegir B
               </button>
             </div>
 
-            {/* Enterprise Pro Plan */}
+            {/* Plan C */}
             <div className="plan-card">
               <div className="plan-header">
-                <div className="plan-icon">🚀</div>
-                <h3 className="plan-name">Enterprise Pro</h3>
+                <div className="plan-icon">C</div>
+                <h3 className="plan-name">C</h3>
                 <div className="plan-price">
-                  <span className="price-amount">Custom</span>
+                  <span className="price-currency">$</span>
+                  <span className="price-amount">3</span>
+                  <span className="price-period">/mes</span>
                 </div>
               </div>
-              <div className="plan-features">
-                <ul>
-                  <li>✓ Usuarios ilimitados</li>
-                  <li>✓ Reportes ilimitados</li>
-                  <li>✓ Multi-organización (5 orgs)</li>
-                  <li>✓ API Access completo</li>
-                  <li>✓ SSO & Security avanzado</li>
-                  <li>✓ Account Manager dedicado</li>
-                </ul>
+              <button className="btn-upgrade" onClick={handleAuthClick}>
+                Elegir C
+              </button>
+            </div>
+
+            {/* Plan D */}
+            <div className="plan-card">
+              <div className="plan-header">
+                <div className="plan-icon">D</div>
+                <h3 className="plan-name">D</h3>
+                <div className="plan-price">
+                  <span className="price-currency">$</span>
+                  <span className="price-amount">4</span>
+                  <span className="price-period">/mes</span>
+                </div>
               </div>
               <button className="btn-upgrade" onClick={handleAuthClick}>
-                Contactar Ventas
+                Elegir D
               </button>
             </div>
           </div>
